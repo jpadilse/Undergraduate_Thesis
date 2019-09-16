@@ -1,0 +1,290 @@
+---
+title: "Master"
+author: "Juan Felipe Padilla Sepúlveda"
+date: "`r Sys.Date()`"
+mainfont: Charter
+fontsize: 11pt
+output: 
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  comment = "#>",
+  collapse = TRUE,
+  fig.width = 6,
+  fig.asp = 0.618,
+  out.width = "70%",
+  fig.align = "center",
+  fig.show = "hold"
+  )
+
+# Library calls
+library(tidyverse)
+library(readr)
+library(magrittr)
+library(lubridate)
+library(stringr)
+
+library(quantmod)
+
+library(mice)
+library(VIM)
+```
+
+# Preliminary
+
+```{bash dta2csv, eval = FALSE}
+# Convert the database of U.S. Call Reports from .dta to .csv
+
+Rscript ./R/dta2csv.R
+```
+
+```{bash xlsx2csv, eval = FALSE}
+# Convert the database of uncertainty indexes of JLN from .xlsx to .csv
+
+Rscript ./R/xlsx2csv.R
+```
+
+```{bash txt2csv, eval = FALSE}
+# Convert the database of FED factors from .txt to .csv
+
+Rscript ./R/txt2csv.R
+```
+
+# Import databases
+
+## U.S. Call Reports
+
+```{r call.reports.usa}
+call.reports.usa <- read_csv(
+  "./Data/CallReportsUSA.csv",
+  col_names = c(
+    "BankID", 
+    "Date", 
+    "Name", 
+    "TotalAssets", 
+    "RealStateLoans", 
+    "PersonalLoans", 
+    "AgriculturalLoans", 
+    "TotalEquity", 
+    "CILoans", 
+    "TotalLoans", 
+    "Securities", 
+    "TotalLiabilities"
+  ),
+  col_types = str_c(c("f", rep("c", 2), rep("d", 9)), collapse = ""),
+  skip = 1,
+  n_max = 1609540
+)
+```
+
+## Uncertainty indexes
+
+```{r financial.uncertainty.JLN}
+financial.uncertainty.JLN <- read_csv(
+  "./Data/FinancialUncertaintyJLN.csv",
+  col_names = c("Date", paste0("FU-JLN-h", c(1, 3, 12))),
+  col_types = str_c(c("?", rep("d", 3)), collapse = ""),
+  skip = 1,
+  n_max = 702
+)
+```
+
+```{r macro.uncertainty.JLN}
+macro.uncertainty.JLN <- read_csv(
+  "./Data/MacroUncertaintyJLN.csv",
+  col_names = c("Date", paste0("MU-JLN-h", c(1, 3, 12))),
+  col_types = str_c(c("?", rep("d", 3)), collapse = ""),
+  skip = 1,
+  n_max = 702
+)
+```
+
+## Factors of FED data
+
+```{r factors.FED}
+factors.FED <- read_csv(
+  "./Data/FactorsFED.csv",
+  col_names = c(paste0(rep("Factor", 7), 1:7)),
+  col_types = str_c(rep("d", 7), collapse = ""),
+  skip = 1,
+  n_max = 716
+)
+```
+
+# Split U.S. Call Reports database by bank
+
+```{r}
+call.reports.usa %>% 
+  split(.$BankID) 
+  
+
+
+
+
+plots <- technicallydata_annual %>%
+  split(.$year) %>%
+  map(
+    ~ggplot(., aes(fct_reorder(isic_names, S_base), S_base)) +
+      geom_boxplot(outlier.size = 3) +
+        coord_flip() +
+        theme_minimal() +
+        labs(
+          x = "",
+          y = "Relative Specialization by Sector",
+          title = "Distribution of Bank Lending Shares by Sector",
+          subtitle = as.character(unique(.$year))
+        ) +
+      geom_label_repel(
+        aes(label = bank_name),
+        data = . %>% filter(near(Outlier_max, 1)) %>%
+          select(isic_names, S_base, bank_name) %>%
+          distinct(),
+        direction = "y",
+        nudge_y = 0.13
+      ) +
+      geom_point(
+        data = . %>% filter(near(Outlier_max, 1)) %>%
+          select(isic_names, S_base) %>%
+          distinct(),
+        shape = 1,
+        size = 5
+      )
+     )
+paths <- str_c(names(plots), ".pdf")
+pwalk(
+  list(paths, plots), 
+  ggsave,
+  width = 18, 
+  height = 11.1
+)
+rm(plots, paths)
+```
+
+# Change format of date column
+
+```{r as.yearmon}
+# call.reports.usa %>% mutate(
+#   Date = as.yearmon(Date, "%Y%m%d"),
+#   CILoans = zoo(CILoans, Date)
+# )
+# 
+# call.reports.usa %<>% mutate(
+#   Date = as.yearmon(Date, "%Y%m%d"),
+#   CILoans = xts(CILoans, Date)
+# )
+# 
+# financial.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+# macro.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+```
+
+# Growth rates of commercial and industrial loans for each bank
+
+```{r growth.rate.loans}
+call.reports.usa %>% 
+  group_by(BankID) %>% 
+  mutate(
+    growth.rate.ciloans = (400 * log(as.zoo(CILoans) / Lag(as.zoo(CILoans))))
+  )
+  
+
+
+
+# Growth rates of commercial loans for each bank
+for(i in 1:length(listBanks)) {
+listBanks[[i]] <- listBanks[[i]][, .(rssdid, name, date, ciloans, growthRate = c(NA, exp(diff(log(ciloans)))-1))]
+}
+```
+
+
+
+
+
+
+```{r}
+F <- F[-(1:16),]
+F <- F[-c(699,698,697),]
+BD <- cbind(UI,F)
+rm(UI, F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# Missing data
+
+## Identifying missing values
+
+```{r identify_not_missing}
+raw.data %>% 
+  filter(
+    complete.cases(raw.data)
+  )
+```
+
+
+```{r identify_missing}
+raw.data %>% 
+  filter(
+    !complete.cases(raw.data)
+  )
+```
+
+```{r missing_desc}
+raw.data %>% 
+  pull(ciloans) %>% 
+  is.na() %>% 
+  sum()
+
+raw.data %>% 
+  pull(ciloans) %>% 
+  is.na() %>% 
+  mean() 
+
+raw.data %>% 
+  complete.cases() %>% 
+  mean()
+```
+
+## Exploring missing-values patterns
+
+```{r tabulating_missing}
+md.pattern(
+  raw.data %>% 
+    select(assets:liabilities),
+  rotate.names = TRUE
+)
+```
+
+## Exploring missing data visually
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
