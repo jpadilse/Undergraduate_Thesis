@@ -21,19 +21,18 @@ knitr::opts_chunk$set(
   out.width = "70%",
   fig.align = "center",
   fig.show = "hold"
-  )
+)
 
 # Library calls
-library(tidyverse)
-library(readr)
-library(magrittr)
-library(lubridate)
-library(stringr)
-
-library(quantmod)
-
-library(mice)
-library(VIM)
+pacman::p_load(
+  tidyverse,
+  magrittr,
+  stringr,
+  readr,
+  quantmod,
+  mice,
+  VIM
+)
 ```
 
 # Preliminary
@@ -48,12 +47,6 @@ Rscript ./R/dta2csv.R
 # Convert the database of uncertainty indexes of JLN from .xlsx to .csv
 
 Rscript ./R/xlsx2csv.R
-```
-
-```{bash txt2csv, eval = FALSE}
-# Convert the database of FED factors from .txt to .csv
-
-Rscript ./R/txt2csv.R
 ```
 
 # Import databases
@@ -109,182 +102,126 @@ macro.uncertainty.JLN <- read_csv(
 
 ```{r factors.FED}
 factors.FED <- read_csv(
-  "./Data/FactorsFED.csv",
+  "./Matlab/FactorsFED.csv",
   col_names = c(paste0(rep("Factor", 7), 1:7)),
   col_types = str_c(rep("d", 7), collapse = ""),
-  skip = 1,
-  n_max = 716
+  skip = 0,
+  n_max = 725
 )
 ```
 
-# Split U.S. Call Reports database by bank
+# Clean U.S. Call Reports database
 
-```{r}
-call.reports.usa %>% 
-  split(.$BankID) 
-  
+## Remove attributes from U.S. Call Reports database
 
+```{r attributes}
+attr(call.reports.usa, "spec") <- NULL
+```
 
+## Resize the database for to allow two business cycles or more for each bank
 
+The average length of the business cycle is retrieved from NBER for the period 1945-2009: 69.5 months (trought from previous trought).
 
-plots <- technicallydata_annual %>%
-  split(.$year) %>%
-  map(
-    ~ggplot(., aes(fct_reorder(isic_names, S_base), S_base)) +
-      geom_boxplot(outlier.size = 3) +
-        coord_flip() +
-        theme_minimal() +
-        labs(
-          x = "",
-          y = "Relative Specialization by Sector",
-          title = "Distribution of Bank Lending Shares by Sector",
-          subtitle = as.character(unique(.$year))
-        ) +
-      geom_label_repel(
-        aes(label = bank_name),
-        data = . %>% filter(near(Outlier_max, 1)) %>%
-          select(isic_names, S_base, bank_name) %>%
-          distinct(),
-        direction = "y",
-        nudge_y = 0.13
-      ) +
-      geom_point(
-        data = . %>% filter(near(Outlier_max, 1)) %>%
-          select(isic_names, S_base) %>%
-          distinct(),
-        shape = 1,
-        size = 5
-      )
-     )
-paths <- str_c(names(plots), ".pdf")
-pwalk(
-  list(paths, plots), 
-  ggsave,
-  width = 18, 
-  height = 11.1
-)
-rm(plots, paths)
+```{r business.cycles}
+call.reports.usa %<>% 
+  semi_join(
+    call.reports.usa %>% 
+      count(BankID) %>% 
+      filter(n > 47)
+  )
+```
+
+## Missing data
+
+### Identifying missing values
+
+```{r is.na}
+sum(is.na(call.reports.usa[["CILoans"]]))
+
+mean(is.na(call.reports.usa[["CILoans"]]))
+
+mean(!complete.cases(call.reports.usa))
+```
+
+### Exploring missing-values patterns
+
+```{r md.pattern, fig.asp = 1}
+md.pattern(call.reports.usa, rotate.names = TRUE)
+```
+
+### Exploring missing data visually
+
+```{r aggr}
+aggr(call.reports.usa, prop = FALSE, numbers = TRUE)
+```
+
+### Delete missing values because the hardware requirements for carry on multiple imputation are too high
+
+```{r anti_join}
+call.reports.usa %<>% 
+  anti_join(
+    call.reports.usa %>% 
+      filter(is.na(CILoans)) %>% 
+      count(BankID)
+  )
 ```
 
 # Change format of date column
 
-```{r as.yearmon}
-# call.reports.usa %>% mutate(
-#   Date = as.yearmon(Date, "%Y%m%d"),
-#   CILoans = zoo(CILoans, Date)
-# )
-# 
-# call.reports.usa %<>% mutate(
-#   Date = as.yearmon(Date, "%Y%m%d"),
-#   CILoans = xts(CILoans, Date)
-# )
-# 
-# financial.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
-# macro.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+```{r yearmon}
+call.reports.usa %<>% mutate(Date = as.yearmon(Date, "%Y%m%d")) 
+
+financial.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+
+macro.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+
+factors.FED %<>% # Dates go from 1959:01 to 2019:07
+  mutate(Date = yearmon(seq(1959 + 2/12, 2019 + 6/12, 1/12))) %>% 
+  select(Date, everything())
 ```
 
-# Growth rates of commercial and industrial loans for each bank
+# Merge the databases
+
+```{r left_join}
+call.reports.usa %<>% 
+  left_join(financial.uncertainty.JLN) %>% 
+  left_join(macro.uncertainty.JLN) %>% 
+  left_join(factors.FED)
+```
+
+# Eliminate the individual databases
+
+```{r rm}
+rm(financial.uncertainty.JLN, macro.uncertainty.JLN, factors.FED)
+```
+
+# Growth rate
+
+## Replace the zeros in the commercial and industrial loans for minimum value in the sample (1)
+
+```{r zeros.ciloans}
+call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans))
+```
+
+## Growth rates of commercial and industrial loans for each bank
 
 ```{r growth.rate.loans}
-call.reports.usa %>% 
+call.reports.usa %<>% mutate(CILoans = xts(CILoans, Date))
+
+call.reports.usa %<>% 
   group_by(BankID) %>% 
   mutate(
-    growth.rate.ciloans = (400 * log(as.zoo(CILoans) / Lag(as.zoo(CILoans))))
-  )
-  
-
-
-
-# Growth rates of commercial loans for each bank
-for(i in 1:length(listBanks)) {
-listBanks[[i]] <- listBanks[[i]][, .(rssdid, name, date, ciloans, growthRate = c(NA, exp(diff(log(ciloans)))-1))]
-}
-```
-
-
-
-
-
-
-```{r}
-F <- F[-(1:16),]
-F <- F[-c(699,698,697),]
-BD <- cbind(UI,F)
-rm(UI, F)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-# Missing data
-
-## Identifying missing values
-
-```{r identify_not_missing}
-raw.data %>% 
-  filter(
-    complete.cases(raw.data)
+    growth.rate.ciloans = 100 * (CILoans - Lag(CILoans)) / Lag(CILoans),
+    #growth.rate.ciloans = ifelse(
+    #  is.nan(growth.rate.ciloans), 
+    #  0, 
+    #  growth.rate.ciloans
+    #),
+    #growth.rate.ciloans = ifelse(
+    #  near(growth.rate.ciloans, -1),
+    #  -100, 
+    #  growth.rate.ciloans
+    #),
+    growth.rate.ciloans.annualized = 12 * growth.rate.ciloans
   )
 ```
-
-
-```{r identify_missing}
-raw.data %>% 
-  filter(
-    !complete.cases(raw.data)
-  )
-```
-
-```{r missing_desc}
-raw.data %>% 
-  pull(ciloans) %>% 
-  is.na() %>% 
-  sum()
-
-raw.data %>% 
-  pull(ciloans) %>% 
-  is.na() %>% 
-  mean() 
-
-raw.data %>% 
-  complete.cases() %>% 
-  mean()
-```
-
-## Exploring missing-values patterns
-
-```{r tabulating_missing}
-md.pattern(
-  raw.data %>% 
-    select(assets:liabilities),
-  rotate.names = TRUE
-)
-```
-
-## Exploring missing data visually
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
