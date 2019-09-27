@@ -58,17 +58,17 @@ Rscript ./R/xlsx2csv.R
 call.reports.usa <- read_csv(
   "./Data/CallReportsUSA.csv",
   col_names = c(
-    "BankID", 
-    "Date", 
-    "Name", 
-    "TotalAssets", 
-    "RealStateLoans", 
-    "PersonalLoans", 
-    "AgriculturalLoans", 
-    "TotalEquity", 
-    "CILoans", 
-    "TotalLoans", 
-    "Securities", 
+    "BankID",
+    "Date",
+    "Name",
+    "TotalAssets",
+    "RealStateLoans",
+    "PersonalLoans",
+    "AgriculturalLoans",
+    "TotalEquity",
+    "CILoans",
+    "TotalLoans",
+    "Securities",
     "TotalLiabilities"
   ),
   col_types = str_c(c("f", rep("c", 2), rep("d", 9)), collapse = ""),
@@ -118,10 +118,10 @@ factors.FED <- read_csv(
 The average length of the business cycle is retrieved from NBER for the period 1945-2009: 69.5 months (trought from previous trought).
 
 ```{r business.cycles}
-call.reports.usa %<>% 
+call.reports.usa %<>%
   semi_join(
-    call.reports.usa %>% 
-      count(BankID) %>% 
+    call.reports.usa %>%
+      count(BankID) %>%
       filter(n > 47)
   )
 ```
@@ -153,10 +153,10 @@ aggr(call.reports.usa, prop = FALSE, numbers = TRUE)
 ### Delete missing values because the hardware requirements for carry on multiple imputation are too high
 
 ```{r anti_join}
-call.reports.usa %<>% 
+call.reports.usa %<>%
   anti_join(
-    call.reports.usa %>% 
-      filter(is.na(CILoans)) %>% 
+    call.reports.usa %>%
+      filter(is.na(CILoans)) %>%
       count(BankID)
   )
 ```
@@ -164,23 +164,23 @@ call.reports.usa %<>%
 # Change format of date column
 
 ```{r yearmon}
-call.reports.usa %<>% mutate(Date = as.yearmon(Date, "%Y%m%d")) 
+call.reports.usa %<>% mutate(Date = as.yearmon(Date, "%Y%m%d"))
 
 financial.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
 
 macro.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
 
 factors.FED %<>% # Dates go from 1959:01 to 2019:07
-  mutate(Date = yearmon(seq(1959 + 2/12, 2019 + 6/12, 1/12))) %>% 
+  mutate(Date = yearmon(seq(1959 + 2 / 12, 2019 + 6 / 12, 1 / 12))) %>%
   select(Date, everything())
 ```
 
 # Merge the databases
 
 ```{r left_join}
-call.reports.usa %<>% 
-  left_join(financial.uncertainty.JLN) %>% 
-  left_join(macro.uncertainty.JLN) %>% 
+call.reports.usa %<>%
+  left_join(financial.uncertainty.JLN) %>%
+  left_join(macro.uncertainty.JLN) %>%
   left_join(factors.FED)
 ```
 
@@ -201,20 +201,20 @@ call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans))
 ## Growth rates of commercial and industrial loans for each bank
 
 ```{r growth.rate.loans}
-call.reports.usa %<>% 
-  group_by(BankID) %>% 
+call.reports.usa %<>%
+  group_by(BankID) %>%
   mutate(
     growth.rate.ciloans = 100 * (CILoans - lag(CILoans)) / lag(CILoans),
-    #growth.rate.ciloans = ifelse(
-    #  is.nan(growth.rate.ciloans), 
-    #  0, 
+    # growth.rate.ciloans = ifelse(
+    #  is.nan(growth.rate.ciloans),
+    #  0,
     #  growth.rate.ciloans
-    #),
-    #growth.rate.ciloans = ifelse(
+    # ),
+    # growth.rate.ciloans = ifelse(
     #  near(growth.rate.ciloans, -1),
-    #  -100, 
+    #  -100,
     #  growth.rate.ciloans
-    #),
+    # ),
     growth.rate.ciloans.annualized = 12 * growth.rate.ciloans
   )
 ```
@@ -222,10 +222,10 @@ call.reports.usa %<>%
 # The DF-GLS test for a unit root
 
 ```{r}
-call.reports.usa %>% 
-  filter(BankID == 37) %$% 
+call.reports.usa %>%
+  filter(BankID == 37) %$%
   ur.ers(
-    CILoans 
+    CILoans
   )
 ```
 
