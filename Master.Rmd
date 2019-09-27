@@ -31,7 +31,8 @@ pacman::p_load(
   readr,
   quantmod,
   mice,
-  VIM
+  VIM,
+  urca
 )
 ```
 
@@ -111,12 +112,6 @@ factors.FED <- read_csv(
 ```
 
 # Clean U.S. Call Reports database
-
-## Remove attributes from U.S. Call Reports database
-
-```{r attributes}
-attr(call.reports.usa, "spec") <- NULL
-```
 
 ## Resize the database for to allow two business cycles or more for each bank
 
@@ -206,12 +201,10 @@ call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans))
 ## Growth rates of commercial and industrial loans for each bank
 
 ```{r growth.rate.loans}
-call.reports.usa %<>% mutate(CILoans = xts(CILoans, Date))
-
 call.reports.usa %<>% 
   group_by(BankID) %>% 
   mutate(
-    growth.rate.ciloans = 100 * (CILoans - Lag(CILoans)) / Lag(CILoans),
+    growth.rate.ciloans = 100 * (CILoans - lag(CILoans)) / lag(CILoans),
     #growth.rate.ciloans = ifelse(
     #  is.nan(growth.rate.ciloans), 
     #  0, 
@@ -225,3 +218,14 @@ call.reports.usa %<>%
     growth.rate.ciloans.annualized = 12 * growth.rate.ciloans
   )
 ```
+
+# The DF-GLS test for a unit root
+
+```{r}
+call.reports.usa %>% 
+  filter(BankID == 37) %$% 
+  ur.ers(
+    CILoans 
+  )
+```
+
