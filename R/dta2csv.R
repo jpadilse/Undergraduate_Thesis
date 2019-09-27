@@ -20,6 +20,6 @@ call.reports.usa %<>% dplyr::select(
   loans,
   securities,
   liabilities
-) 
+)
 
 readr::write_csv(call.reports.usa, "./Data/CallReportsUSA.csv")
