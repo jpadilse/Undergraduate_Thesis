@@ -20,20 +20,28 @@ knitr::opts_chunk$set(
   fig.asp = 0.618,
   out.width = "70%",
   fig.align = "center",
-  fig.show = "hold"
+  fig.show = "hold",
+  tidy = "styler"
 )
 
 # Library calls
 pacman::p_load(
-  tidyverse,
+  tidymodels,
   magrittr,
-  stringr,
+  tidyr,
   readr,
-  quantmod,
-  mice,
+  stringr,
+  lubridate,
+  ggthemes,
   VIM,
   urca
 )
+
+# Set seed of random number generator
+set.seed(1112494378)
+
+# Set theme of ggplot
+theme_set(theme_tufte())
 ```
 
 # Preliminary
@@ -82,7 +90,7 @@ call.reports.usa <- read_csv(
 ```{r financial.uncertainty.JLN}
 financial.uncertainty.JLN <- read_csv(
   "./Data/FinancialUncertaintyJLN.csv",
-  col_names = c("Date", paste0("FU-JLN-h", c(1, 3, 12))),
+  col_names = c("Date", paste0("FU_JLN_h", c(1, 3, 12))),
   col_types = str_c(c("?", rep("d", 3)), collapse = ""),
   skip = 1,
   n_max = 702
@@ -92,7 +100,7 @@ financial.uncertainty.JLN <- read_csv(
 ```{r macro.uncertainty.JLN}
 macro.uncertainty.JLN <- read_csv(
   "./Data/MacroUncertaintyJLN.csv",
-  col_names = c("Date", paste0("MU-JLN-h", c(1, 3, 12))),
+  col_names = c("Date", paste0("MU_JLN_h", c(1, 3, 12))),
   col_types = str_c(c("?", rep("d", 3)), collapse = ""),
   skip = 1,
   n_max = 702
@@ -122,7 +130,8 @@ call.reports.usa %<>%
   semi_join(
     call.reports.usa %>%
       count(BankID) %>%
-      filter(n > 47)
+      filter(n > 47),
+    by = "BankID"
   )
 ```
 
@@ -138,50 +147,49 @@ mean(is.na(call.reports.usa[["CILoans"]]))
 mean(!complete.cases(call.reports.usa))
 ```
 
-### Exploring missing-values patterns
-
-```{r md.pattern, fig.asp = 1}
-md.pattern(call.reports.usa, rotate.names = TRUE)
-```
-
 ### Exploring missing data visually
 
 ```{r aggr}
 aggr(call.reports.usa, prop = FALSE, numbers = TRUE)
 ```
 
-### Delete missing values because the hardware requirements for carry on multiple imputation are too high
+### Delete missing values (listwise deletion) because the hardware requirements for carry on multiple imputation are too high
 
 ```{r anti_join}
 call.reports.usa %<>%
   anti_join(
     call.reports.usa %>%
       filter(is.na(CILoans)) %>%
-      count(BankID)
+      count(BankID), 
+    by = "BankID"
   )
 ```
 
 # Change format of date column
 
 ```{r yearmon}
-call.reports.usa %<>% mutate(Date = as.yearmon(Date, "%Y%m%d"))
+call.reports.usa %<>% mutate(Date = ymd(Date))
 
-financial.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+financial.uncertainty.JLN %<>% 
+  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
 
-macro.uncertainty.JLN %<>% mutate(Date = as.yearmon(Date, "%Y-%m-%d"))
+macro.uncertainty.JLN %<>%
+  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
 
-factors.FED %<>% # Dates go from 1959:01 to 2019:07
-  mutate(Date = yearmon(seq(1959 + 2 / 12, 2019 + 6 / 12, 1 / 12))) %>%
+factors.FED %<>% 
+  mutate(Date = seq(ymd(19590401), ymd(20190801), by = "1 month") - 1) %>% 
   select(Date, everything())
 ```
 
 # Merge the databases
 
 ```{r left_join}
-call.reports.usa %<>%
-  left_join(financial.uncertainty.JLN) %>%
-  left_join(macro.uncertainty.JLN) %>%
-  left_join(factors.FED)
+call.reports.usa %<>% list(
+  financial.uncertainty.JLN,
+  macro.uncertainty.JLN,
+  factors.FED
+) %>% 
+  reduce(left_join)
 ```
 
 # Eliminate the individual databases
@@ -192,7 +200,7 @@ rm(financial.uncertainty.JLN, macro.uncertainty.JLN, factors.FED)
 
 # Growth rate
 
-## Replace the zeros in the commercial and industrial loans for minimum value in the sample (1)
+## Replace the zeros in the commercial and industrial loans for minimum value in the sample: one unit
 
 ```{r zeros.ciloans}
 call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans))
@@ -215,8 +223,74 @@ call.reports.usa %<>%
     #  -100,
     #  growth.rate.ciloans
     # ),
-    growth.rate.ciloans.annualized = 12 * growth.rate.ciloans
+    growth.rate.ciloans.annualized = 4 * growth.rate.ciloans
   )
+```
+
+# Train and test split
+
+```{r initial_split}
+train.test.split <- initial_split(call.reports.usa, prop = 0.80)
+
+call.reports.usa.train <- training(train.test.split)
+
+call.reports.usa.test <- testing(train.test.split)
+```
+
+# Nested tibble
+
+```{r nest}
+call.reports.usa.train %<>% nest()
+```
+
+## Fit many models
+
+```{r Macro_h1}
+call.reports.usa.train %<>% mutate(
+  Macro_h1 = map(
+    data,
+    ~lm(
+      growth.rate.ciloans ~ MU_JLN_h1 +
+        Factor1 + Factor2 + Factor3 + Factor4 + Factor5 + Factor6 + Factor7,
+      .
+    )
+  )
+)
+```
+
+## Model quality
+
+```{r glance}
+model.quality <- call.reports.usa.train %>% 
+  mutate(Quality = map(model, glance)) %>% 
+  unnest(Quality)
+```
+
+# Tidy model
+
+```{r}
+call.reports.usa.train %<>% mutate(Coeff = map(Macro_h1, tidy)) 
+```
+
+# 
+
+```{r}
+coeff <- call.reports.usa.train %>% 
+  unnest(Coeff) %>% 
+  filter(term == "MU_JLN_h1") %>% 
+  select(estimate:p.value)
+
+coeff %>% 
+  ggplot(aes(estimate)) +
+    geom_histogram(bins = 180) +
+    coord_cartesian(ylim = c(0, 50)) +
+    labs(
+      x = quote(beta[Uncertainty]),
+      y = "Count",
+      title = "Distribution of the effect of macroeconomic uncertainty (h = 1)",
+      caption = "Data from U.S. Call Reports, FRED-MD and Jurado et al. (2015)"
+    )
+ggsave("MU_JLN_h1.pdf")
 ```
 
 # The DF-GLS test for a unit root
