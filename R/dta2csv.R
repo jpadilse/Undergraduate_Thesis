@@ -1,13 +1,12 @@
-
 # Library calls -----------------------------------------------------------
 
-library(magrittr)
+pacman::p_load(dplyr, haven, magrittr, readr)
 
 # Transform U.S. Call Report data from .dta to .csv -----------------------
 
-call.reports.usa <- haven::read_dta("./Data/callreports_final.dta")
+call.reports.usa <- read_dta("./Data/Input/callreports_final.dta")
 
-call.reports.usa %<>% dplyr::select(
+call.reports.usa %<>% select(
   rssdid,
   date,
   name,
@@ -22,4 +21,4 @@ call.reports.usa %<>% dplyr::select(
   liabilities
 )
 
-readr::write_csv(call.reports.usa, "./Data/CallReportsUSA.csv")
+write_csv(call.reports.usa, "./Data/Input/CallReportsUSA.csv")
