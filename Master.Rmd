@@ -13,28 +13,29 @@ output:
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  echo = FALSE,
-  comment = "#>",
   collapse = TRUE,
-  fig.width = 6,
-  fig.asp = 0.618,
-  out.width = "70%",
+  comment = "#>",
+  echo = FALSE,
   fig.align = "center",
+  fig.asp = 0.618,
   fig.show = "hold",
+  fig.width = 6,
+  out.width = "70%",
   tidy = "styler"
 )
 
 # Library calls
 pacman::p_load(
   tidymodels,
+  tidyquant,
   magrittr,
   tidyr,
   readr,
   stringr,
-  lubridate,
   ggthemes,
-  VIM,
-  urca
+  #VIM,
+  #urca,
+  #quantreg,
 )
 
 # Set seed of random number generator
@@ -42,6 +43,12 @@ set.seed(1112494378)
 
 # Set theme of ggplot
 theme_set(theme_tufte())
+```
+
+# Creating a package bibliography File
+
+```{r packages.bib}
+write_bib(.packages(), file = "./packages.bib", width = 80)
 ```
 
 # Preliminary
@@ -53,9 +60,15 @@ Rscript ./R/dta2csv.R
 ```
 
 ```{bash xlsx2csv, eval = FALSE}
-# Convert the database of uncertainty indexes of JLN from .xlsx to .csv
+# Transform uncertainty indexes from .xlsx to .csv
 
 Rscript ./R/xlsx2csv.R
+```
+
+```{bash API2csv, eval = FALSE}
+# Import series through FED, Yahoo Finance and Quandl API
+
+Rscript ./R/API2csv.R
 ```
 
 # Import databases
@@ -64,7 +77,7 @@ Rscript ./R/xlsx2csv.R
 
 ```{r call.reports.usa}
 call.reports.usa <- read_csv(
-  "./Data/CallReportsUSA.csv",
+  "./Data/Input/CallReportsUSA.csv",
   col_names = c(
     "BankID",
     "Date",
@@ -87,23 +100,104 @@ call.reports.usa <- read_csv(
 
 ## Uncertainty indexes
 
-```{r financial.uncertainty.JLN}
-financial.uncertainty.JLN <- read_csv(
-  "./Data/FinancialUncertaintyJLN.csv",
-  col_names = c("Date", paste0("FU_JLN_h", c(1, 3, 12))),
-  col_types = str_c(c("?", rep("d", 3)), collapse = ""),
+### Economic Policy Uncertainty
+
+```{r economic.policy.uncertainty}
+economic.policy.uncertainty <- read_csv(
+  "./Data/Input/EPU.csv",
+  col_names = c("Year", "Month", "EPU-3C", "EPU-News"),
+  col_types = "?ddd",
+  skip = 1,
+  n_max = 417
+)
+```
+
+### Monetary Policy Uncertainty
+
+```{r monetary.policy.uncertainty.BBD}
+monetary.policy.uncertainty.BBD <- read_csv(
+  "./Data/Input/MPU-BBD.csv",
+  col_names = c("Date", "MPU-BBD-AWN", "MPU-BBD-10"),
+  col_types = "?dd",
+  skip = 1,
+  n_max = 393
+)
+```
+
+```{r monetary.policy.uncertainty.HRS}
+monetary.policy.uncertainty.HRS <- read_csv(
+  "./Data/Input/MPU-HRS.csv",
+  col_names = c("Date", "MPU-HRS"),
+  col_types = "?d",
+  skip = 1,
+  n_max = 391
+)
+```
+
+### Geopolitical Risk
+
+```{r geopolitical.risk.index}
+geopolitical.risk.index <- read_csv(
+  "./Data/Input/GeopoliticalRiskIndex.csv",
+  col_names = c("Date", "GPR", "GPT", "GPA"),
+  col_types = "?ddd",
+  skip = 1,
+  n_max = 417
+)
+```
+
+### Survey-Based Macroeconomic Uncertainty
+
+```{r survey.based.uncertainty}
+survey.based.uncertainty <- read_csv(
+  "./Data/Input/SurveyBaseUncertainty.csv",
+  col_names = c("Date", "SB"),
+  col_types = "?d",
+  skip = 1,
+  n_max = 5889
+)
+```
+
+### Econometric Measures of Uncertainty
+
+```{r macro.uncertainty.JLN}
+macro.uncertainty.JLN <- read_csv(
+  "./Data/Input/MacroUncertaintyJLN.csv",
+  col_names = c("Date", paste0("MU-JLN-h", c(1, 3, 12))),
+  col_types = "?ddd",
   skip = 1,
   n_max = 702
 )
 ```
 
-```{r macro.uncertainty.JLN}
-macro.uncertainty.JLN <- read_csv(
-  "./Data/MacroUncertaintyJLN.csv",
-  col_names = c("Date", paste0("MU_JLN_h", c(1, 3, 12))),
-  col_types = str_c(c("?", rep("d", 3)), collapse = ""),
+```{r real.uncertainty.JLN}
+real.uncertainty.JLN <- read_csv(
+  "./Data/Input/RealUncertaintyJLN.csv",
+  col_names = c("Date", paste0("RU-JLN-h", c(1, 3, 12))),
+  col_types = "?ddd",
   skip = 1,
   n_max = 702
+)
+```
+
+```{r financial.uncertainty.JLN}
+financial.uncertainty.JLN <- read_csv(
+  "./Data/Input/FinancialUncertaintyJLN.csv",
+  col_names = c("Date", paste0("FU_JLN_h", c(1, 3, 12))),
+  col_types = "?ddd",
+  skip = 1,
+  n_max = 702
+)
+```
+
+## USA's raw data
+
+```{r USA.data}
+USA.data <- read_csv(
+  "./Data/Input/USA-data.csv",
+  col_types = str_c(c("D", rep("d", 32)), collapse = ""),
+  skip = 0,
+  n_max = 537
 )
 ```
 
@@ -118,6 +212,250 @@ factors.FED <- read_csv(
   n_max = 725
 )
 ```
+
+# Change format of date column
+
+```{r Date}
+# U.S. Call Reports Database
+call.reports.usa %<>% mutate(Date = ymd(Date))
+
+# Economic policy uncertainty
+economic.policy.uncertainty %<>% 
+  mutate(Date = seq(ymd(19850201), ymd(20191001), by = "1 month") - 1) %>% 
+  select(Date, `EPU-3C`, `EPU-News`)
+
+# Monetary policy uncertainty
+monetary.policy.uncertainty.BBD %<>% 
+  mutate(Date = seq(ymd(19850201), ymd(20171001), by = "1 month") - 1)
+
+monetary.policy.uncertainty.HRS %<>% 
+  mutate(Date = seq(ymd(19850201), ymd(20170801), by = "1 month") - 1)
+
+# Geopolitical risk
+geopolitical.risk.index %<>% 
+  mutate(Date = seq(ymd(19850201), ymd(20191001), by = "1 month") - 1) 
+
+# Survey-based macroeconomic uncertainty
+survey.based.uncertainty %<>% mutate(Date = ymd(Date))
+
+# Econometric measures of uncertainty
+macro.uncertainty.JLN %<>%
+  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
+
+real.uncertainty.JLN %<>% 
+  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
+
+financial.uncertainty.JLN %<>% 
+  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
+
+# USA's raw data
+USA.data %<>% 
+  mutate(Date = seq(ymd(19750201), ymd(20190901), by = "1 month") - 1)
+
+# Fed's data
+factors.FED %<>% 
+  mutate(Date = seq(ymd(19590401), ymd(20190801), by = "1 month") - 1) %>% 
+  select(Date, everything())
+```
+
+# Non-Asset-Market Uncertainty Index
+
+## Merge Indexes
+
+```{r uncertainty.indexes}
+uncertainty.indexes <- list(
+  economic.policy.uncertainty,
+  monetary.policy.uncertainty.BBD,
+  monetary.policy.uncertainty.HRS,
+  geopolitical.risk.index,
+  macro.uncertainty.JLN, 
+  real.uncertainty.JLN, 
+  financial.uncertainty.JLN
+) %>% 
+  reduce(inner_join)
+```
+
+## PCA
+
+```{r scree.plot.with.parallel.analysis}
+fa.parallel(
+  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12)], 
+  fa = "pc", 
+  n.iter = 1000, 
+  show.legend = FALSE,
+  main = "Scree plot with parallel analysis"
+)
+```
+
+```{r principal.component}
+principal.component <- principal(
+  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12)], 
+  nfactors = 1
+)
+```
+
+## DFM
+
+```{r dynamic.factors}
+dynamic.factors <- dynfactoR::dfm(
+  uncertainty.indexes[, -c(1)], 
+  1, 
+  1, 
+  1
+)
+
+DFM.base <- tibble(
+  Date = uncertainty.indexes[["Date"]],
+  PCA = -dynamic.factors[["pca"]],
+  QML = -dynamic.factors[["qml"]],
+  TwoStep = -dynamic.factors[["twostep"]]
+)
+```
+
+### Plot Non-Asset-Market Index
+
+```{r}
+
+```
+
+
+## VAR
+
+### Merge USA variables with uncertainty index
+
+```{r VAR.data}
+VAR.data <- USA.data %>% inner_join(DFM.base) 
+```
+
+# TEST
+
+```{r}
+# Test with JLN
+VAR.data <- USA.data %>% inner_join(macro.uncertainty.JLN)
+
+# Test with EPU
+VAR.data <- USA.data %>% inner_join(monetary.policy.uncertainty.BBD)
+```
+
+
+# Trivariate VAR
+
+```{r}
+VAR.trivariate <- vars::VAR(
+  VAR.data %>% dplyr::select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    PCA
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r}
+irf.trivariate <- vars::irf(
+  VAR.trivariate, 
+  impulse = "PCA", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  boot = TRUE, 
+  runs = 100, 
+  ci = 0.66
+)
+
+plot(irf.trivariate)
+```
+
+# Quadvariate VAR
+
+```{r}
+VAR.quadvariate <- vars::VAR(
+  VAR.data %>% dplyr::select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    StockMarketIndex.log.cycle,
+    PCA
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r}
+irf.quadvariate <- vars::irf(
+  VAR.quadvariate, 
+  impulse = "PCA", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  boot = TRUE, 
+  runs = 100, 
+  ci = 0.66
+)
+
+plot(irf.quadvariate)
+```
+
+# Quadvariate VAR in reverse order
+
+```{r}
+VAR.quadvariate.reverse <- vars::VAR(
+  VAR.data %>% dplyr::select(
+    `EPU-3C`,
+    StockMarketIndex.log.cycle,
+    Employment.manu.lin.cycle, 
+    Production.NAICS.log.cycle 
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r}
+irf.quadvariate.reverse <- vars::irf(
+  VAR.quadvariate.reverse, 
+  impulse = "EPU.3C", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  boot = TRUE, 
+  runs = 100, 
+  ci = 0.66
+)
+
+plot(irf.quadvariate.reverse)
+```
+
+##
+
+
+
+
+```{r}
+# SVAR model
+# Setting up matrices for A-model
+A.matrix <- matrix(NA, nrow = 11, ncol = 11)
+diag(A.matrix) <- 1
+A.matrix[2:11, 1]   <- 0
+A.matrix[3:11, 2]   <- 0
+A.matrix[4:11, 3]   <- 0
+A.matrix[5:11, 4]   <- 0
+A.matrix[6:11, 5]   <- 0
+A.matrix[7:11, 6]   <- 0
+A.matrix[8:11, 7]   <- 0
+A.matrix[9:11, 8]   <- 0
+A.matrix[10:11, 9]  <- 0
+A.matrix[11:11, 10] <- 0
+
+A.matrix %<>% t()
+
+# Estimating the SVAR A-type model by direct maximization of the log-likelihood
+SVAR.model <- SVAR(VAR.model, estmethod = "direct", Amat = A.matrix, hessian = TRUE)
+```
+
+
+
+
+
+
 
 # Clean U.S. Call Reports database
 
@@ -165,22 +503,6 @@ call.reports.usa %<>%
   )
 ```
 
-# Change format of date column
-
-```{r yearmon}
-call.reports.usa %<>% mutate(Date = ymd(Date))
-
-financial.uncertainty.JLN %<>% 
-  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
-
-macro.uncertainty.JLN %<>%
-  mutate(Date = seq(ymd(19600801), ymd(20190101), by = "1 month") - 1)
-
-factors.FED %<>% 
-  mutate(Date = seq(ymd(19590401), ymd(20190801), by = "1 month") - 1) %>% 
-  select(Date, everything())
-```
-
 # Merge the databases
 
 ```{r left_join}
@@ -200,10 +522,22 @@ rm(financial.uncertainty.JLN, macro.uncertainty.JLN, factors.FED)
 
 # Growth rate
 
-## Replace the zeros in the commercial and industrial loans for minimum value in the sample: one unit
+<!-- ## Replace the zeros in the commercial and industrial loans for minimum value in the sample: one unit -->
 
-```{r zeros.ciloans}
-call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans))
+<!-- ```{r zeros.ciloans} -->
+<!-- call.reports.usa %<>% mutate(CILoans = ifelse(near(CILoans, 0), 1, CILoans)) -->
+<!-- ``` -->
+
+## Experimental
+
+```{r}
+call.reports.usa %<>% 
+  anti_join(
+    call.reports.usa %>% 
+      filter(near(CILoans, 0)) %>% 
+      count(BankID),
+    by = "BankID"
+  )
 ```
 
 ## Growth rates of commercial and industrial loans for each bank
@@ -247,12 +581,13 @@ call.reports.usa.train %<>% nest()
 
 ```{r Macro_h1}
 call.reports.usa.train %<>% mutate(
-  Macro_h1 = map(
+  Finan_h1 = map(
     data,
-    ~lm(
-      growth.rate.ciloans ~ MU_JLN_h1 +
-        Factor1 + Factor2 + Factor3 + Factor4 + Factor5 + Factor6 + Factor7,
-      .
+    ~rq(
+      growth.rate.ciloans ~ MU_JLN_h1 + lag(MU_JLN_h1) +
+        Factor1 + Factor2 + Factor3 + Factor4 + Factor5 + Factor6 + Factor7, 
+      tau = 0.95, 
+      data = .
     )
   )
 )
@@ -269,7 +604,7 @@ model.quality <- call.reports.usa.train %>%
 # Tidy model
 
 ```{r}
-call.reports.usa.train %<>% mutate(Coeff = map(Macro_h1, tidy)) 
+call.reports.usa.train %<>% mutate(Coeff = map(Finan_h1, tidy)) 
 ```
 
 # 
@@ -278,21 +613,21 @@ call.reports.usa.train %<>% mutate(Coeff = map(Macro_h1, tidy))
 coeff <- call.reports.usa.train %>% 
   unnest(Coeff) %>% 
   filter(term == "MU_JLN_h1") %>% 
-  select(estimate:p.value)
+  select(estimate:tau)
 
 coeff %>% 
   ggplot(aes(estimate)) +
     geom_histogram(bins = 180) +
-    coord_cartesian(ylim = c(0, 50)) +
+    #coord_cartesian(ylim = c(0, 50)) +
     labs(
       x = quote(beta[Uncertainty]),
       y = "Count",
       title = "Distribution of the effect of macroeconomic uncertainty (h = 1)",
       caption = "Data from U.S. Call Reports, FRED-MD and Jurado et al. (2015)"
     )
-ggsave("MU_JLN_h1.pdf")
+ggsave("MU_JLN_h12.pdf")
 ```
-
+  
 # The DF-GLS test for a unit root
 
 ```{r}
@@ -302,4 +637,44 @@ call.reports.usa %>%
     CILoans
   )
 ```
+
+# Test one model
+
+```{r}
+SampleOne <- call.reports.usa %>% 
+  filter(BankID == 37)
+
+
+
+SampleOne %>% 
+  ggplot(aes(Date, growth.rate.ciloans.annualized)) +
+    geom_line()
+
+summary(lm(growth.rate.ciloans ~ MU_JLN_h1 +
+        Factor1 + Factor2 + Factor3 + Factor4 + Factor5 + Factor6 + Factor7,
+  data = SampleOne))
+
+print(rq(growth.rate.ciloans ~ MU_JLN_h1 +
+        Factor1 + Factor2 + Factor3 + Factor4 + Factor5 + Factor6 + Factor7, 
+   data = SampleOne))
+
+SampleOne %>% 
+  ggplot(aes(MU_JLN_h1, growth.rate.ciloans.annualized)) +
+  geom_point(shape = 21) +
+  geom_rangeframe() +
+  stat_quantile(
+    aes(colour = ..quantile..),
+    quantiles = c(0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99),
+    formula = y ~ x 
+  ) +
+  geom_smooth(method = "lm", se = FALSE, linetype = 2, colour = "red") +
+  scale_colour_viridis(limits = c(0, 1)) +
+  theme_tufte() +
+  labs(
+    x = "Diferencial de tasas de interés",
+    y = "Retornos",
+    colour = "Cuantiles"
+  )
+```
+
 
