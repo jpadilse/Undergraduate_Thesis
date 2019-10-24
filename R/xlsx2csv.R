@@ -8,7 +8,7 @@ pacman::p_load(readxl, readr)
 
 economic.policy.uncertainty <- read_xlsx(
   "./Data/Input/US_Policy_Uncertainty_Data.xlsx",
-  col_names = c("Year", "Month", "EPU-3C", "EPU-News"),
+  col_names = c("Year", "Month", "EPU3C", "EPUNews"),
   col_types = c("guess", rep("numeric", 3)),
   skip = 1,
   n_max = 417
