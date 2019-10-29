@@ -1,0 +1,441 @@
+---
+title: "Report #2"
+author: "Juan Felipe Padilla Sepúlveda"
+date: "`r Sys.Date()`"
+mainfont: Charter
+fontsize: 11pt
+bibliography: references.bib
+output: 
+  bookdown::pdf_document2
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  fig.align = "center",
+  fig.asp = 0.618,
+  fig.show = "hold",
+  fig.width = 6,
+  out.width = "70%",
+  tidy = "styler"
+)
+
+# Library calls
+pacman::p_load(
+  tidymodels,
+  tidyquant,
+  magrittr,
+  tidyr,
+  readr,
+  stringr,
+  ggthemes
+)
+
+# Set seed of random number generator
+set.seed(1112494378)
+
+# Set theme of ggplot
+theme_set(theme_tufte())
+```
+
+# Non-Asset-Market Index {#non-asset-market-index}
+
+## Data
+
+In the empirical exercise I use uncertainty indexes from distinct sources for the USA economy. Specifically, the index are:
+
+- The Economic Policy Uncertainty Index (EPU) developed by @Baker_2016. This Index is available from January 1985 through September 2019 in the authors website [@bakebloodavi:2019]. 
+- The Monetary Policy Uncertainty Index (MPU) developed by @Baker_2016; henceforth BBD U.S. MPU. This Index is available from January 1985 through September 2019 in the authors website [@bakebloodavi:2019]. Likewise, the authors construct two variants  of them monthly MPU Index for the United States by using two different sets of newspapers.
+- The Monetary Policy Uncertainty Index (MPU) developed by 
+
+## PCA
+
+```{r Import_Uncertainty}
+source("./R/Import_Uncertainty.R")
+```
+
+The first thing to do is merge the different uncertainty indexes by a common date. The minimum range available is to July 2017.
+
+```{r uncertainty.indexes, message = FALSE}
+uncertainty.indexes <- list(
+  economic.policy.uncertainty,
+  monetary.policy.uncertainty.BBD,
+  monetary.policy.uncertainty.HRS,
+  geopolitical.risk.index,
+  macro.uncertainty.JLN,
+  real.uncertainty.JLN,
+  financial.uncertainty.JLN
+) %>% 
+  reduce(inner_join)
+```
+
+```{r scree.plot, include = FALSE}
+scree.plot <- psych::fa.parallel(
+  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)],
+  fa = "pc",
+  n.iter = 1000,
+  plot = FALSE
+)
+```
+
+Although the goal is construct one economic index from the underlying series, it is worthy show the number of components that satisfy several criteria. Each component is associated with an eigenvalue of the correlation matrix of the the raw data. The first principal component (PC) is associated with the largest eigenvalue, the second PC with the second-largest eigenvalue, and so on. The Kaiser-Harris criterion suggests retaining components with eigenvalues greater than 1 unit. Components with eigenvalues less than 1 explain less variance than contained in a single variable. In the Cattel Scree test, the eigenvalues are plotted against their component numbers . Finally, In Parallel Analysis [@Hayton_2004] are run simulations, extracting eigenvalues from random data matrices of the same size as the original matrix of data. 
+
+The figure \@ref(fig:scree) displays the scree test based on the observed eigenvalues (as column bars), the mean eigenvalues derived from 1000 random data matrices (as dashed line), and the eigenvalues greater than 1 (as a horizontal line at $y = 1$). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
+
+```{r scree, cache = TRUE, fig.cap = "Criteria Kaiser-Harris, Cattell Scree and Parallel Analysis suggest one component"}
+tibble(
+  CN = 1:6, EV = scree.plot[["pc.values"]], SIM = scree.plot[["pc.sim"]]
+) %>% 
+  ggplot(aes(CN, EV)) +
+    geom_hline(aes(yintercept = 1)) +
+    geom_col(width = 0.25) +
+    geom_line(aes(CN, SIM), linetype = "dashed") +
+    scale_x_continuous(breaks = 1:6) +
+    scale_y_continuous(breaks = seq(0, 3, by = 0.5)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Component number",
+      y = "Eigen values of principal components"
+    )
+```
+
+## Bai and Ng
+
+```{r}
+#POET::POETKhat(uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)])
+```
+
+
+## DFM
+
+```{r dynamic.factors, message = FALSE}
+dynamic.factors <- dynfactoR::dfm(
+  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)], 
+  1, 
+  1, 
+  1
+)
+
+DFM.base <- tibble(
+  Date = uncertainty.indexes[["Date"]],
+  PCA = dynamic.factors[["pca"]][, 1],
+  QML = dynamic.factors[["qml"]][, 1],
+  TwoStep = dynamic.factors[["twostep"]][, 1]
+)
+```
+
+# Plot Non-Asset-Market Index
+
+```{r}
+# DFM.base %>% 
+#   ggplot(aes(Date, PCA)) +
+#     geom_line() 
+#     #theme_tq()
+```
+
+# VAR Estimates on the Impact of Uncertainty Shocks
+
+With the objective of estimate a VAR model were necessary several series. These series were obtained from the Federal Reserve Saint Louis (FRED), Yahoo Finance and Quandl webpages through the API of each of them. Specifically, I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and nonsupervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective Federal Funds Rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance. All series were taken seasonally adjusted except the Federal Funds Rate and the Standard and Poor's 500 index but them doesn't exhibit seasonal components^[Nevertheless, it is good practice to verify that the series are indeed free of seasonality. Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series.]. The absence of seasonal components allow to avoid the overparameterization of the VAR model. 
+
+All series of which units are measured in prices need to be given the $100 \times \log()$ treatment but the M2 money stock which enter as continuously compounded annual rate of change^[$[(\ln(x_{t}) - \ln(x_{t - 1})) \times 100] \times 12$]. All variables are Hamilton [@hamilton:2018] detrended (with to look-ahead period of 2 years and seasonality of twelve months) in the baseline estimations.
+
+```{r Import_USA_Data}
+source("./R/Import_USA_Data.R")
+```
+
+```{r VAR.data, message = FALSE}
+VAR.data <- USA.data %>% inner_join(DFM.base) 
+```
+
+```{r VAR.baseline}
+VAR.baseline <- vars::VAR(
+  VAR.data %>% select(
+    Production.all.log.cycle,
+    Employment.all.lin.cycle,
+    Consumption.log.cycle,
+    Prices.log.cycle,
+    NewOrders.log.cycle,
+    Wages.all.log.cycle,
+    Labor.all.lin.cycle,
+    FederalFundsRate.lin.cycle,
+    StockMarketIndex.log.cycle,
+    M2.cca.cycle,
+    PCA
+  ),
+  lag.max = 12,
+  ic = "SC"
+)
+```
+
+```{r roots.baseline, message = FALSE}
+roots.baseline <- vars::roots(VAR.baseline)
+```
+
+```{r irf.baseline, warning = FALSE}
+irf.baseline <- vars::irf(
+  VAR.baseline, 
+  impulse = "PCA", 
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+```{r irf.baseline.matrix}
+matrix.response <- as_tibble(irf.baseline[["irf"]][["PCA"]]) %>% 
+  mutate(Months = row_number()) %>% 
+  pivot_longer(-Months, names_to = "Variable", values_to = "Response")
+
+matrix.lower <- as_tibble(irf.baseline[["Lower"]][["PCA"]]) %>% 
+  mutate(Months = row_number()) %>%
+  pivot_longer(-Months, names_to = "Variable", values_to = "Lower")
+
+matrix.upper <- as_tibble(irf.baseline[["Upper"]][["PCA"]]) %>% 
+  mutate(Months = row_number()) %>%
+  pivot_longer(-Months, names_to = "Variable", values_to = "Upper")
+
+matrix.irf <- list(matrix.response, matrix.lower, matrix.upper) %>% 
+  reduce(inner_join, by  = c("Variable", "Months")) %>% 
+  select(Variable, Months, Response, Lower, Upper) %>% 
+  arrange(Variable, Months) %>% 
+  mutate(
+    Variable = factor(Variable),
+    Variable = forcats::fct_recode(
+      Variable,
+      "Production" = "Production.all.log.cycle",
+      "Employment" = "Employment.all.lin.cycle",
+      "New Orders" = "NewOrders.log.cycle",
+      "Consumption" = "Consumption.log.cycle",
+      "Federal Funds Rate" = "FederalFundsRate.lin.cycle",
+      "Stock Market Index" = "StockMarketIndex.log.cycle"
+    )
+  )
+```
+
+(ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of uncertainty. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the Federal Funds Rate and Employment are in basic points. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r irf-baseline-plot, cache = TRUE, fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)"}
+matrix.irf %>% 
+  filter(Variable %in% c(
+    "Production",
+    "Employment",
+    "New Orders",
+    "Consumption",
+    "Federal Funds Rate",
+    "Stock Market Index"
+  )) %>% 
+  ggplot(aes(Months, Response)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_ribbon(aes(ymin = Lower, ymax = Upper), fill = "steelblue", alpha = 0.125) +
+    geom_line(colour = "blue", linetype = "dashed") +
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) + 
+    facet_wrap(
+      ~ Variable, 
+      nrow = 3,
+      scales = "free_y", 
+    ) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact"
+    )
+```
+
+## Robustness
+
+### Alternative sets and orderings of variables
+
+```{r VAR.trivariate}
+VAR.trivariate <- vars::VAR(
+  VAR.data %>% select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    PCA
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r irf.trivariate, warning = FALSE}
+irf.trivariate <- vars::irf(
+  VAR.trivariate, 
+  impulse = "PCA", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+```{r VAR.quadvariate}
+VAR.quadvariate <- vars::VAR(
+  VAR.data %>% select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    StockMarketIndex.log.cycle,
+    PCA
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r irf.quadvariate, warning = FALSE}
+irf.quadvariate <- vars::irf(
+  VAR.quadvariate, 
+  impulse = "PCA", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+```{r VAR.quadvariate.reverse}
+VAR.quadvariate.reverse <- vars::VAR(
+  VAR.data %>% select(
+    PCA,
+    StockMarketIndex.log.cycle,
+    Employment.manu.lin.cycle, 
+    Production.NAICS.log.cycle 
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r irf.quadvariate.reverse, warning = FALSE}
+irf.quadvariate.reverse <- vars::irf(
+  VAR.quadvariate.reverse, 
+  impulse = "PCA", 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+In Figure \@ref(fig:robustness) the VAR is reestimated using a simple trivariate VAR (industrial production, employment and non-asset-market uncertainty index only) also display a drop (dashed line). The "quadvariate" VAR (industrial production, employment, stock-market and non-asset-market uncertainty index only) also displays a similar drop (solid line), as does the quadvariate VAR with the variable ordering reversed (dotted line). Hence the response of industrial production to a uncertainty shock appears robust to both the basic selection and the ordering of variables.
+
+(ref:robustness) **VAR model is robust to different variable sets and ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of uncertainty. The estimation period runs from January 1985 to July 2017. The axe is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production).
+
+```{r robustness, cache = TRUE, fig.cap = "(ref:robustness)"}
+tibble(
+  Months = 0:60,
+  Trivariate = irf.trivariate[["irf"]][["PCA"]],
+  Quadvariate = irf.quadvariate[["irf"]][["PCA"]],
+  `Quadvariate in reverse` = irf.quadvariate.reverse[["irf"]][["PCA"]]
+) %>% 
+  gather(
+    Trivariate, Quadvariate, `Quadvariate in reverse`, 
+    key = "VAR", 
+    value = "Shock"
+  ) %>% 
+  ggplot(aes(Months, Shock)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_line(aes(colour = VAR, linetype = VAR)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "% impact on production",
+      colour = "",
+      linetype = ""
+    )
+```
+
+### Eight-variable VAR
+
+```{r VAR.medium}
+VAR.medium <- vars::VAR(
+  VAR.data %>% select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    Labor.manu.lin.cycle,
+    Prices.urban.log.cycle,
+    Wages.manu.log.cycle,
+    FederalFundsRate.lin.cycle,
+    StockMarketIndex.log.cycle,
+    PCA
+  ), 
+  lag.max = 12, 
+  ic = "SC"
+)
+```
+
+```{r irf.medium.production, warning = FALSE}
+irf.medium.production <- vars::irf(
+  VAR.medium, 
+  impulse = c("PCA", "StockMarketIndex.log.cycle"), 
+  response = "Production.NAICS.log.cycle",
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+```{r production-medium, cache = TRUE, fig.cap = "Decline of production under uncertainty"}
+tibble(
+  Months = 0:60,
+  PCA = irf.medium.production[["irf"]][["PCA"]],
+  PCA.lower = irf.medium.production[["Lower"]][["PCA"]],
+  PCA.upper = irf.medium.production[["Upper"]][["PCA"]],
+  Stock = -irf.medium.production[["irf"]][["StockMarketIndex.log.cycle"]]
+) %>% 
+  pivot_longer(PCA, Stock, names_to = "Imp", values_to = "Res") %>% 
+  ggplot(aes(Months, Res)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_ribbon(aes(ymin = PCA.lower, ymax = PCA.upper), fill = "steelblue", alpha = 0.125) +
+    geom_line(colour = "blue", linetype = "dashed") +
+    geom_line(aes(Months, Stock), colour = "darkred", linetype = "dotted") + 
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(0.20, -0.60, by = -0.05)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "% impact on production"
+    )
+```
+
+
+
+
+
+
+```{r irf.medium.employment, warning = FALSE}
+irf.medium.employment <- vars::irf(
+  VAR.medium, 
+  impulse = "PCA", 
+  response = "Employment.manu.lin.cycle",
+  n.ahead = 60, 
+  runs = 100, 
+  ci = 0.86
+)
+```
+
+```{r employment-medium, cache = TRUE, fig.cap = "Decline of employment under uncertainty"}
+tibble(
+  Months = 0:60,
+  PCA = irf.medium.employment[["irf"]][["PCA"]],
+  PCA.lower = irf.medium.employment[["Lower"]][["PCA"]],
+  PCA.upper = irf.medium.employment[["Upper"]][["PCA"]]
+) %>% 
+  ggplot(aes(Months, PCA)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_ribbon(aes(ymin = PCA.lower, ymax = PCA.upper), fill = "steelblue", alpha = 0.125) +
+    geom_line(colour = "red", linetype = "dashed") +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(20, -40, by = -5)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact on employment"
+    )
+```
+
+
+# References
