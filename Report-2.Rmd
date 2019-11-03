@@ -4,7 +4,7 @@ author: "Juan Felipe Padilla Sepúlveda"
 date: "`r Sys.Date()`"
 mainfont: Charter
 fontsize: 11pt
-bibliography: references.bib
+bibliography: [references.bib, packages.bib]
 csl: apa.csl
 output: 
   bookdown::pdf_document2:
@@ -47,11 +47,56 @@ set.seed(1112494378)
 theme_set(theme_tufte())
 ```
 
+```{r write_bib, warning = FALSE}
+# Creating a package bibliography File
+
+knitr::write_bib(
+  c("dynfactoR",  "POET", "psych", "vars"), 
+  file = "./packages.bib", 
+  width = 80
+)
+```
+
+# Raw references
+
+## lag order
+
+- @paultjos:1985
+- @gonzpita:2002
+- @kilian:2001
+- @ventlutz:2005
+- @kilian:1998
+
+## fixed lag
+
+- @leebpots:2005
+- @leebpots:2006
+
+## DFM
+
+### Estimation
+
+- @stocwats:2016
+
+### Number of factors
+
+- @baing:2002
+
+## VAR-ref
+
+- @stocwats:2001
+- @chrieichevan:2005
+
+## Index
+
+- @chulguilurib:2017
+
+
 # Data {#data}
 
 ## Source {#source}
 
-In the empirical exercise I use uncertainty indexes from distinct sources for the USA economy. Specifically, the index are (following the non-asset-market indexes proposed in @dattlondsunbeltferriacojahaligiud:2017):
+In the empirical exercise I use uncertainty indexes from distinct sources for the USA economy. Specifically, the index are (following the non-asset-market indexes proposed in @dattlondsunbeltferriacojahaligiudroge:2017):
 
 - The Economic Policy Uncertainty Index (EPU) developed by @bakebloodavi:2016. This Index is available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>. 
 - The Monetary Policy Uncertainty Index (MPU) developed by @bakebloodavi:2016; henceforth BBD U.S. MPU. This Index is available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>. Likewise, the authors construct two variants  of them monthly MPU Index for the United States by using two different sets of newspapers.
@@ -193,6 +238,26 @@ source("./R/Import-USA-Data.R")
 ```{r VAR_data, message = FALSE}
 VAR.data <- USA.data %>% inner_join(DFM.base) 
 ```
+
+```{r}
+VAR.base <- vars::VARselect(
+  VAR.data %>% select(
+    Production.all.log.cycle,
+    Employment.all.lin.cycle,
+    Consumption.log.cycle,
+    Prices.log.cycle,
+    NewOrders.log.cycle,
+    Wages.all.log.cycle,
+    Labor.all.lin.cycle,
+    FederalFundsRate.lin.cycle,
+    StockMarketIndex.log.cycle,
+    M2.cca.cycle,
+    PCA
+  ),
+  lag.max = 24
+)
+```
+
 
 ```{r VAR_baseline}
 VAR.baseline <- vars::VAR(
@@ -344,8 +409,24 @@ knitr::kable(
 
 ### Eight-variable VAR {#var-eight}
 
+```{r var_medium_lag}
+VAR_medium_lag <- vars::VARselect(
+  VAR.data %>% select(
+    Production.NAICS.log.cycle, 
+    Employment.manu.lin.cycle, 
+    Labor.manu.lin.cycle,
+    Prices.urban.log.cycle,
+    Wages.manu.log.cycle,
+    FederalFundsRate.lin.cycle,
+    StockMarketIndex.log.cycle,
+    PCA
+  ), 
+  lag.max = 12
+)
+```
+
 ```{r VAR_medium}
-VAR.medium <- vars::VAR(
+VAR_medium <- vars::VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
     Employment.manu.lin.cycle, 
@@ -357,31 +438,31 @@ VAR.medium <- vars::VAR(
     PCA
   ), 
   lag.max = 12, 
-  ic = "SC"
+  ic = "AIC"
 )
 ```
 
 ```{r irf_medium_production, warning = FALSE}
-irf.medium.production <- vars::irf(
-  VAR.medium, 
+irf_medium_production <- vars::irf(
+  VAR_medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
   response = "Production.NAICS.log.cycle",
   n.ahead = 60, 
   runs = 100, 
-  ci = 0.86
+  ci = 0.68
 )
 ```
 
 ```{r irf_medium_production_matrix}
-data.plot <- tibble(
+data_plot <- tibble(
   Months = 0:60,
   `Response to a uncertainty shock` = as.vector(
-    irf.medium.production[["irf"]][["PCA"]]
+    irf_medium_production[["irf"]][["PCA"]]
   ),
-  PCA.lower = as.vector(irf.medium.production[["Lower"]][["PCA"]]),
-  PCA.upper = as.vector(irf.medium.production[["Upper"]][["PCA"]]),
+  PCA_lower = as.vector(irf_medium_production[["Lower"]][["PCA"]]),
+  PCA_upper = as.vector(irf_medium_production[["Upper"]][["PCA"]]),
   `Response to a stock market shock` = -as.vector(
-    irf.medium.production[["irf"]][["StockMarketIndex.log.cycle"]]
+    irf_medium_production[["irf"]][["StockMarketIndex.log.cycle"]]
   )
 ) %>% 
   gather(
@@ -392,15 +473,15 @@ data.plot <- tibble(
   )
 ```
 
-(ref:production-medium) **Decline of production under uncertainty**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non--asset-market uncertainty and to an unexpected fall the stock-market, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:production-medium) **Decline of production under uncertainty**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non--asset-market uncertainty and to an unexpected fall the stock-market (model with 3 lags, selected by the Akaike Information Criterion), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
 ```{r production-medium, cache = TRUE, fig.cap = "(ref:production-medium)"}
-data.plot %>% 
+data_plot %>% 
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
     geom_ribbon(
-      data = data.plot %>% filter(Imp == "Response to a uncertainty shock"), 
-      aes(ymin = PCA.lower, ymax = PCA.upper), 
+      data = data_plot %>% filter(Imp == "Response to a uncertainty shock"), 
+      aes(ymin = PCA_lower, ymax = PCA_upper), 
       fill = "steelblue", 
       alpha = 0.125
     ) +
@@ -420,26 +501,26 @@ data.plot %>%
 ```
 
 ```{r irf_medium_employment, warning = FALSE}
-irf.medium.employment <- vars::irf(
-  VAR.medium, 
+irf_medium_employment <- vars::irf(
+  VAR_medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
   response = "Employment.manu.lin.cycle",
   n.ahead = 60, 
   runs = 100, 
-  ci = 0.86
+  ci = 0.68
 )
 ```
 
 ```{r irf_medium_employment_matrix}
-data.plot <- tibble(
+data_plot <- tibble(
   Months = 0:60,
   `Response to a uncertainty shock` = as.vector(
-    irf.medium.employment[["irf"]][["PCA"]]
+    irf_medium_employment[["irf"]][["PCA"]]
   ),
-  PCA.lower = as.vector(irf.medium.employment[["Lower"]][["PCA"]]),
-  PCA.upper = as.vector(irf.medium.employment[["Upper"]][["PCA"]]),
+  PCA_lower = as.vector(irf_medium_employment[["Lower"]][["PCA"]]),
+  PCA_upper = as.vector(irf_medium_employment[["Upper"]][["PCA"]]),
   `Response to a stock market shock` = -as.vector(
-    irf.medium.employment[["irf"]][["StockMarketIndex.log.cycle"]]
+    irf_medium_employment[["irf"]][["StockMarketIndex.log.cycle"]]
   )
 ) %>% 
   gather(
@@ -453,12 +534,12 @@ data.plot <- tibble(
 (ref:employment-medium) **Decline of employment under uncertainty**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
 ```{r employment-medium, cache = TRUE, fig.cap = "(ref:employment-medium)"}
-data.plot %>% 
+data_plot %>% 
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
     geom_ribbon(
-      data = data.plot %>% filter(Imp == "Response to a uncertainty shock"), 
-      aes(ymin = PCA.lower, ymax = PCA.upper), 
+      data = data_plot %>% filter(Imp == "Response to a uncertainty shock"), 
+      aes(ymin = PCA_lower, ymax = PCA_upper), 
       fill = "steelblue", 
       alpha = 0.125
     ) +
@@ -484,7 +565,7 @@ To identify uncertainty shocks, a Cholesky ordering is used with production orde
 Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-market uncertainty shock. Industrial production displays a fall of around 0.30 \% within 12 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a fall the stock-market is also plotted (dotted line) displaying a much more large drop over the subsequent 2 years. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity.
 
 ```{r fevd_medium, warning = FALSE}
-fevd_medium <- vars::fevd(VAR.medium, 60)
+fevd_medium <- vars::fevd(VAR_medium, 60)
 ```
 
 ```{r fevd_medium_production}
@@ -670,6 +751,12 @@ tibble(
     ) +
     theme(legend.position = "bottom")
 ```
+
+\clearpage
+
+# Appendix {-}
+
+In the estimations I make use of the r-package `dynfactoR` [@R-dynfactoR] to estimate the DFM, the r-package `psych` [@R-psych] to select the optimal number of components, the r-package `POET` [@R-POET] to select the optimal number of static and dynamic factors and to estimate the VARs models the r-package `vars` [@R-vars] was used.
 
 \clearpage
 
