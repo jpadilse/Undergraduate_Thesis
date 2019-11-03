@@ -7,7 +7,8 @@ fontsize: 11pt
 bibliography: references.bib
 csl: apa.csl
 output: 
-  bookdown::pdf_document2
+  bookdown::pdf_document2:
+    keep_tex: true
 ---
 
 ```{r setup, include = FALSE}
@@ -23,15 +24,20 @@ knitr::opts_chunk$set(
   tidy = "styler"
 )
 
+# Global options
+options(knitr.graphics.auto_pdf = TRUE)
+
 # Library calls
 pacman::p_load(
-  tidymodels,
-  tidyquant,
+  forcats,
+  ggthemes,
   magrittr,
-  tidyr,
   readr,
   stringr,
-  ggthemes
+  tidymodels,
+  tidyquant,
+  tidyr,
+  viridis
 )
 
 # Set seed of random number generator
@@ -93,7 +99,7 @@ Therefore, all variables are detrended with Hamilton method in the baseline esti
 source("./R/Import-Uncertainty.R")
 ```
 
-```{r uncertainty.indexes, message = FALSE}
+```{r uncertainty_indexes, message = FALSE}
 uncertainty.indexes <- list(
   economic.policy.uncertainty,
   monetary.policy.uncertainty.BBD,
@@ -106,7 +112,7 @@ uncertainty.indexes <- list(
   reduce(inner_join)
 ```
 
-```{r dynamic.factors, include = FALSE}
+```{r dynamic_factors, include = FALSE}
 dynamic.factors <- dynfactoR::dfm(
   uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)], 
   1, 
@@ -131,7 +137,7 @@ DFM.base <- tibble(
 
 ### PCA
 
-```{r scree.plot, include = FALSE}
+```{r scree_plot, include = FALSE}
 scree.plot <- psych::fa.parallel(
   uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)],
   fa = "pc",
@@ -148,15 +154,15 @@ The figure \@ref(fig:scree) displays the scree test based on the observed eigenv
 
 (ref:scree) **Scree Plot**: The Figure shows a scree plot (the dashed line), eigenvalues greater than 1 criteria (solid line), and parallel analysis with 1000 simulations (dot-dashed line) suggest retaining a single component.
 
-```{r scree, cache = TRUE, fig.cap = "(ref:scree)"}
+```{r scree, cache = TRUE, dependson = c("scree_plot"), fig.cap = "(ref:scree)"}
 tibble(
   CN = 1:6, EV = scree.plot[["pc.values"]], SIM = scree.plot[["pc.sim"]]
 ) %>% 
   ggplot(aes(CN, EV)) +
     geom_hline(aes(yintercept = 1), size = 0.125) +
-    geom_line(aes(CN, SIM), linetype = "dotdash", colour = "darkred") +
-    geom_line(aes(CN, EV), linetype = "dashed", colour = "steelblue") +
-    geom_point(aes(CN, EV), colour = "steelblue") +
+    geom_line(aes(CN, SIM), linetype = "dotdash", colour = viridis(2)[1]) +
+    geom_line(aes(CN, EV), linetype = "dashed", colour = viridis(2)[2]) +
+    geom_point(aes(CN, EV), colour = viridis(2)[2]) +
     scale_x_continuous(breaks = 1:6) +
     scale_y_continuous(breaks = seq(0, 3, by = 0.5)) +
     labs(
@@ -180,15 +186,15 @@ All three estimators gives similar results, from now I use for analysis the inde
 
 ## Estimates on the Impact of Non--Asset-Market Uncertainty Shocks {#var-baseline}
 
-```{r Import_USA_Data}
-source("./R/Import_USA_Data.R")
+```{r Import_USA_Data, cache.extra = file.info("Import-USA-Data.R")}
+source("./R/Import-USA-Data.R")
 ```
 
-```{r VAR.data, message = FALSE}
+```{r VAR_data, message = FALSE}
 VAR.data <- USA.data %>% inner_join(DFM.base) 
 ```
 
-```{r VAR.baseline}
+```{r VAR_baseline}
 VAR.baseline <- vars::VAR(
   VAR.data %>% select(
     Production.all.log.cycle,
@@ -208,7 +214,7 @@ VAR.baseline <- vars::VAR(
 )
 ```
 
-```{r irf.baseline, warning = FALSE}
+```{r irf_baseline, warning = FALSE}
 irf.baseline <- vars::irf(
   VAR.baseline, 
   impulse = "PCA", 
@@ -218,7 +224,7 @@ irf.baseline <- vars::irf(
 )
 ```
 
-```{r irf.baseline.matrix}
+```{r irf_baseline_matrix}
 matrix.response <- as_tibble(irf.baseline[["irf"]][["PCA"]]) %>% 
   mutate(Months = row_number()) %>% 
   pivot_longer(-Months, names_to = "Variable", values_to = "Response")
@@ -251,7 +257,7 @@ matrix.irf <- list(matrix.response, matrix.lower, matrix.upper) %>%
 
 (ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r irf-baseline-plot, cache = TRUE, fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)"}
+```{r irf-baseline-plot, cache = TRUE, dependson = c("irf_baseline_matrix", "irf_baseline", "VAR_baseline", "VAR_data", "Import_USA_Data"), fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)"}
 matrix.irf %>% 
   filter(Variable %in% c(
     "Production",
@@ -278,11 +284,67 @@ matrix.irf %>%
     )
 ```
 
+```{r Granger}
+Granger <- function(Cause) {
+  vars::causality(VAR.baseline, cause = Cause)[["Granger"]][["p.value"]]
+}
+```
+
+```{r}
+Names_VAR <-   c(
+  "Production",
+  "Employment",
+  "Consumption",
+  "Prices",
+  "New Orders",
+  "Wages",
+  "Labor",
+  "Federal Funds rate",
+  "Stock market index",
+  "M2",
+  "Uncertainty"
+)
+
+p_values_granger <- map_dbl(
+  list(
+    "Production.all.log.cycle",
+    "Employment.all.lin.cycle",
+    "Consumption.log.cycle",
+    "Prices.log.cycle",
+    "NewOrders.log.cycle",
+    "Wages.all.log.cycle",
+    "Labor.all.lin.cycle",
+    "FederalFundsRate.lin.cycle",
+    "StockMarketIndex.log.cycle",
+    "M2.cca.cycle",
+    "PCA"
+  )
+  , Granger
+)
+```
+
+(ref:Granger-table) **Granger-Causality Tests**: The entries show the $p$-values for F-tests that lags of the variable in the row labeled Regressor do not enter the reduced form equation for all remaining variables.
+
+```{r Granger-table, results = "asis"}
+knitr::kable(
+  tibble(
+    Regressor = Names_VAR,
+    `p-values` = p_values_granger
+  )
+  , digits = 2,
+  , align = c("l", "c"),
+  , caption = "(ref:Granger-table)"
+  , caption.short = "Granger-Causality Tests",
+  , booktabs = TRUE
+  , linesep = ""
+)
+```
+
 ## Robustness {#robustness}
 
 ### Eight-variable VAR {#var-eight}
 
-```{r VAR.medium}
+```{r VAR_medium}
 VAR.medium <- vars::VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
@@ -299,7 +361,7 @@ VAR.medium <- vars::VAR(
 )
 ```
 
-```{r irf.medium.production, warning = FALSE}
+```{r irf_medium_production, warning = FALSE}
 irf.medium.production <- vars::irf(
   VAR.medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
@@ -310,7 +372,7 @@ irf.medium.production <- vars::irf(
 )
 ```
 
-```{r irf.medium.production.matrix}
+```{r irf_medium_production_matrix}
 data.plot <- tibble(
   Months = 0:60,
   `Response to a uncertainty shock` = as.vector(
@@ -345,8 +407,8 @@ data.plot %>%
     geom_line(aes(colour = Imp, linetype = Imp)) +
     scale_x_continuous(breaks = seq(0, 60, by = 5)) +
     scale_y_continuous(breaks = seq(0.20, -0.60, by = -0.05)) +
-    scale_color_manual(values = c("darkred", "steelblue")) +
-    scale_linetype_manual(values = c("dotted", "dashed")) +
+    scale_color_manual(values = c(viridis(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
     labs(
       caption = "Source: Own calculations",
       x = "Months after the shock",
@@ -357,7 +419,7 @@ data.plot %>%
     theme(legend.position = "bottom")
 ```
 
-```{r irf.medium.employment, warning = FALSE}
+```{r irf_medium_employment, warning = FALSE}
 irf.medium.employment <- vars::irf(
   VAR.medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
@@ -368,7 +430,7 @@ irf.medium.employment <- vars::irf(
 )
 ```
 
-```{r irf.medium.employment.matrix}
+```{r irf_medium_employment_matrix}
 data.plot <- tibble(
   Months = 0:60,
   `Response to a uncertainty shock` = as.vector(
@@ -403,8 +465,8 @@ data.plot %>%
     geom_line(aes(colour = Imp, linetype = Imp)) +
     scale_x_continuous(breaks = seq(0, 60, by = 5)) +
     scale_y_continuous(breaks = seq(20, -60, by = -10)) +
-    scale_color_manual(values = c("darkred", "steelblue")) +
-    scale_linetype_manual(values = c("dotted", "dashed")) +
+    scale_color_manual(values = c(viridis(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
     labs(
       caption = "Source: Own calculations",
       x = "Months after the shock",
@@ -421,9 +483,92 @@ To identify uncertainty shocks, a Cholesky ordering is used with production orde
 
 Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-market uncertainty shock. Industrial production displays a fall of around 0.30 \% within 12 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a fall the stock-market is also plotted (dotted line) displaying a much more large drop over the subsequent 2 years. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity.
 
+```{r fevd_medium, warning = FALSE}
+fevd_medium <- vars::fevd(VAR.medium, 60)
+```
+
+```{r fevd_medium_production}
+fevd_medium_production <- as_tibble(
+  fevd_medium[["Production.NAICS.log.cycle"]]
+)
+
+fevd_medium_production %<>% 
+  rename(
+    Production = Production.NAICS.log.cycle,
+    Employment = Employment.manu.lin.cycle,
+    Prices = Prices.urban.log.cycle,
+    Wages = Wages.manu.log.cycle,
+    Labor = Labor.manu.lin.cycle,
+    `Federal funds rate` = FederalFundsRate.lin.cycle,
+    `Stock market index` = StockMarketIndex.log.cycle,
+    Uncertainty = PCA  
+  ) %>% 
+  mutate(N = row_number()) %>% 
+  gather(Production:Uncertainty, key = "Variable", value = "Percentage") %>% 
+  mutate(Variable = factor(Variable, levels = unique(Variable))) %>% 
+  arrange(N)
+```
+
+```{r fevd_medium_R}
+fevd_medium_R <- as_tibble(
+  fevd_medium[["FederalFundsRate.lin.cycle"]]
+)
+
+fevd_medium_R %<>% 
+  rename(
+    Production = Production.NAICS.log.cycle,
+    Employment = Employment.manu.lin.cycle,
+    Prices = Prices.urban.log.cycle,
+    Wages = Wages.manu.log.cycle,
+    Labor = Labor.manu.lin.cycle,
+    `Federal funds rate` = FederalFundsRate.lin.cycle,
+    `Stock market index` = StockMarketIndex.log.cycle,
+    Uncertainty = PCA  
+  ) %>% 
+  mutate(N = row_number()) %>% 
+  gather(Production:Uncertainty, key = "Variable", value = "Percentage") %>% 
+  mutate(Variable = factor(Variable, levels = unique(Variable))) %>%
+  arrange(N) 
+```
+
+(ref:fevd-medium-production) **Forecast error variance decomposition for production**: The Figure shows fractions of the forecast error variance due to production shocks for the eight variables. The sample period is January 1985 to July 2017.
+
+```{r fevd-medium-production-plot, cache = TRUE, fig.cap = "(ref:fevd-medium-production)"}
+fevd_medium_production %>% 
+  ggplot(aes(N, Percentage)) +
+    geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = scales::percent) +
+    scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) +
+    scale_fill_viridis_d() +
+    labs(
+    caption = "Source: Own calculations",
+    x = "Horizont",
+    y = "",
+    fill = ""
+    )
+```
+
+(ref:fevd-medium-R-plot) **Forecast error variance decomposition for federal funds rate**: The Figure shows fractions of the forecast error variance due to federal funds rate shocks for the eight variables. The sample period is January 1985 to July 2017.
+
+```{r fevd-medium-R-plot, cache = TRUE, fig.cap = "(ref:fevd-medium-R-plot)"}
+fevd_medium_R %>% 
+  ggplot(aes(N, Percentage)) +
+    geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = scales::percent) +
+    scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) +
+    scale_fill_viridis_d() +
+    labs(
+    caption = "Source: Own calculations",
+    x = "Horizont",
+    y = "",
+    fill = ""
+    )
+```
+
+
 ### Alternative sets and orderings of variables {#sets-order}
 
-```{r VAR.trivariate}
+```{r VAR_trivariate}
 VAR.trivariate <- vars::VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
@@ -435,7 +580,7 @@ VAR.trivariate <- vars::VAR(
 )
 ```
 
-```{r irf.trivariate, warning = FALSE}
+```{r irf_trivariate, warning = FALSE}
 irf.trivariate <- vars::irf(
   VAR.trivariate, 
   impulse = "PCA", 
@@ -446,7 +591,7 @@ irf.trivariate <- vars::irf(
 )
 ```
 
-```{r VAR.quadvariate}
+```{r VAR_quadvariate}
 VAR.quadvariate <- vars::VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
@@ -459,7 +604,7 @@ VAR.quadvariate <- vars::VAR(
 )
 ```
 
-```{r irf.quadvariate, warning = FALSE}
+```{r irf_quadvariate, warning = FALSE}
 irf.quadvariate <- vars::irf(
   VAR.quadvariate, 
   impulse = "PCA", 
@@ -470,7 +615,7 @@ irf.quadvariate <- vars::irf(
 )
 ```
 
-```{r VAR.quadvariate.reverse}
+```{r VAR_quadvariate_reverse}
 VAR.quadvariate.reverse <- vars::VAR(
   VAR.data %>% select(
     PCA,
@@ -483,7 +628,7 @@ VAR.quadvariate.reverse <- vars::VAR(
 )
 ```
 
-```{r irf.quadvariate.reverse, warning = FALSE}
+```{r irf_quadvariate_reverse, warning = FALSE}
 irf.quadvariate.reverse <- vars::irf(
   VAR.quadvariate.reverse, 
   impulse = "PCA", 
@@ -515,6 +660,7 @@ tibble(
     geom_line(aes(colour = VAR, linetype = VAR)) +
     scale_x_continuous(breaks = seq(0, 60, by = 5)) +
     scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) +
+    scale_color_viridis_d() +
     labs(
       caption = "Source: Own calculations",
       x = "Months after the shock",
