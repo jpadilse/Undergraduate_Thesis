@@ -91,6 +91,14 @@ knitr::write_bib(
 
 - @chulguilurib:2017
 
+## Fan chart
+
+- @britfishwhit:1998
+- @clements:2004
+
+## Structural break
+
+- @hansen:2001
 
 # Data {#data}
 
@@ -751,6 +759,10 @@ tibble(
     ) +
     theme(legend.position = "bottom")
 ```
+# Forecast
+
+
+
 
 \clearpage
 
