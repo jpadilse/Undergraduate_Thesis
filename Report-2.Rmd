@@ -4,8 +4,9 @@ author: "Juan Felipe Padilla Sepúlveda"
 date: "`r Sys.Date()`"
 mainfont: Charter
 fontsize: 11pt
-bibliography: [references.bib, packages.bib]
+bibliography: [References.bib, packages.bib]
 csl: apa.csl
+link-citations: true
 output: 
   bookdown::pdf_document2:
     keep_tex: true
@@ -24,34 +25,41 @@ knitr::opts_chunk$set(
   tidy = "styler"
 )
 
-# Global options
-options(knitr.graphics.auto_pdf = TRUE)
-
 # Library calls
-pacman::p_load(
-  forcats,
-  ggthemes,
-  magrittr,
-  readr,
-  stringr,
-  tidymodels,
-  tidyquant,
-  tidyr,
-  viridis
-)
+
+library(dynfactoR)
+library(forcats)
+library(ggthemes)
+library(ggts)
+library(magrittr)
+library(psych)
+library(readr)
+library(stringr)
+library(tidymodels)
+library(tidyquant)
+library(tidyr)
+library(vars)
+library(viridis)
+
+# Global options
 
 # Set seed of random number generator
 set.seed(1112494378)
 
 # Set theme of ggplot
 theme_set(theme_tufte())
+
+# Declare preferences
+conflict_prefer("select", "dplyr")
+conflict_prefer("filter", "dplyr")
+conflict_prefer("VAR", "vars")
 ```
 
 ```{r write_bib, warning = FALSE}
 # Creating a package bibliography File
 
 knitr::write_bib(
-  c("dynfactoR",  "POET", "psych", "vars"), 
+  c("dynfactoR", "psych", "strucchange", "vars"), 
   file = "./packages.bib", 
   width = 80
 )
@@ -96,9 +104,11 @@ knitr::write_bib(
 - @britfishwhit:1998
 - @clements:2004
 
-## Structural break
+## Nowcasting
 
-- @hansen:2001
+- @gianreicsmal:2008
+- @banbruns:2011
+- @banbgianreic:2011
 
 # Data {#data}
 
@@ -144,55 +154,137 @@ Which can be rewritten as:
 
 Therefore, all variables are detrended with Hamilton method in the baseline estimations.
 
-# Non-Asset-Market Index {#non-asset-market-index}
+# Results {#results}
 
-## DFM
+## Non-Asset-Market Index {#non-asset-market-index}
 
 ```{r Import_Uncertainty}
 source("./R/Import-Uncertainty.R")
 ```
 
 ```{r uncertainty_indexes, message = FALSE}
-uncertainty.indexes <- list(
-  economic.policy.uncertainty,
-  monetary.policy.uncertainty.BBD,
-  monetary.policy.uncertainty.HRS,
-  geopolitical.risk.index,
-  macro.uncertainty.JLN,
-  real.uncertainty.JLN,
-  financial.uncertainty.JLN
+uncertainty_indexes <- list(
+  economic_policy_uncertainty,
+  monetary_policy_uncertainty_BBD,
+  monetary_policy_uncertainty_HRS,
+  geopolitical_risk_index,
+  macro_uncertainty_JLN,
+  real_uncertainty_JLN,
+  financial_uncertainty_JLN
 ) %>% 
   reduce(inner_join)
 ```
 
 ```{r dynamic_factors, include = FALSE}
-dynamic.factors <- dynfactoR::dfm(
-  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)], 
-  1, 
-  1, 
-  1
+chosen_indexes <- c(
+  "EPUNews", 
+  "MPU_BBD_AWN", 
+  "MPU_BBD_10", 
+  "MPU_HRS", 
+  "GPR", 
+  "MU_JLN_h1"
 )
 
-DFM.base <- tibble(
-  Date = uncertainty.indexes[["Date"]],
-  PCA = dynamic.factors[["pca"]][, 1],
-  QML = dynamic.factors[["qml"]][, 1],
-  TwoStep = dynamic.factors[["twostep"]][, 1]
+dynamic_factors <- dfm(
+  uncertainty_indexes %>% 
+    select(!!!chosen_indexes), 
+    #mutate_all(~scale(.)), 
+  r = 1, 
+  q = 1, 
+  p = 1
+)
+
+DFM_base <- tibble(
+  Date = uncertainty_indexes[["Date"]],
+  PCA = dynamic_factors[["pca"]][, 1],
+  TwoStep = dynamic_factors[["twostep"]][, 1],
+  QML = dynamic_factors[["qml"]][, 1]
 )
 ```
 
+(ref:non-asset-market-index) **Non-Asset-Market-Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is rescaled by a factor of 100 in the plot.
 
-<!-- ## Bai and Ng -->
+```{r non-asset-market-index, cache = TRUE, fig.cap = "(ref:non-asset-market-index)"}
+DFM_base %>% 
+  ggplot(aes(Date, QML)) + 
+    geom_cycle(fill = "grey50") +
+    geom_hline(yintercept = quantile(DFM_base[["QML"]], 0.95), size = 0.125) +
+    geom_line() +
+    scale_x_date(date_breaks = "5 year", date_labels = "%Y") +
+    labs(
+      caption = "Source: Own calculations",
+      x = "",
+      y = ""
+    )
+```
 
-<!-- # ```{r} -->
-<!-- # #POET::POETKhat(uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)]) -->
-<!-- # ``` -->
+```{r DescribeIndex}
+DescribeIndex <- function(x) {
+  skew <- skewness(x)
+  kurt <- kurtosis(x) 
+  AR <- lm(x ~ dplyr::lag(x))[["coefficients"]][2]
+  c(skew, kurt, AR)
+}
+```
+
+```{r QLR, include = FALSE}
+QML_ts <- ts(DFM_base[["QML"]], start = c(1985, 1), frequency = 12)
+
+QML_data <- ts.intersect(QML_ts, QML_ts_1 = stats::lag(QML_ts, k = -1))
+
+QLR <- Fstats(QML_ts ~ QML_ts_1, data = QML_data)
+
+sctest(QLR)
+```
+
+```{r date_QLR, include = FALSE}
+date_QLR <- breakpoints(QML_ts ~ QML_ts_1, data = QML_data, h = 0.15)
+  
+coef(date_QLR, breaks = 1)
+```
+
+In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis, persistence and half-life of the shocks for the full sample and for two sub-samples are presented (January 1927 to March 1940 and April 1940 to September 2014). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence (AR(1) with drift). The basic idea is to calculate an $F$ statistic (often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]) for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$ where $T$ is the total of observations^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9, omitting the leading and trailing 15 \% of observations.], and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value [@andrews:2003]. This modified Chow test is variously called the *Quand Likelihood Ratio (QLR) statistic* [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks, see @hansen:2001.]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression.
+
+The Chow test is the Wald statistic testing
+the hypothesis that the factor loadings are constant in a given equation, against the alter-
+native that they have different values before and after the Great Moderation break date of
+1984q4
+
+The Quandt
+likelihood ratio (QLR) version allows for an unknown break date and is the maximum
+value of the Chow statistic (the sup-Wald statistic) for potential breaks in the central
+70% of the sample, see Breitung and Eickmeier (2011) for additional discussion.
+
+
+(ref:summary-table) **Summary Statistics of Non-Asset-Market Index**: The table reports the first-order autocorrelation coefficient and estimates of skewness and kurtosis. 
+
+```{r summary-table, results = "asis"}
+knitr::kable(
+  tibble(
+    Statistic = c("Skewness", "Kurtosis", "Persistence, AR(1)"),
+    `1985:M1-2017:M7` = DescribeIndex(
+      DFM_base[["QML"]]
+    ),
+    `1985:M2-2007:M7` = DescribeIndex(
+      DFM_base[DFM_base[["Date"]] <= "2007-07-31", ][["QML"]]
+    ),
+    `2007:M8-2017:M7` = DescribeIndex(
+      DFM_base[DFM_base[["Date"]] >= "2007-08-31", ][["QML"]]
+    )
+  )
+  , digits = 2,
+  , align = c("l", "c", "c", "c")
+  , caption = "(ref:summary-table)"
+  , caption.short = "Summary Statistics of Non-Asset-Market Index"
+  , booktabs = TRUE
+)
+```
 
 ### PCA
 
-```{r scree_plot, include = FALSE}
-scree.plot <- psych::fa.parallel(
-  uncertainty.indexes[, -c(1, 2, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18)],
+```{r scree_plot_values, include = FALSE}
+scree_plot <- fa.parallel(
+  uncertainty_indexes %>% select(!!!chosen_indexes),
   fa = "pc",
   n.iter = 100,
   plot = FALSE
@@ -201,28 +293,35 @@ scree.plot <- psych::fa.parallel(
 
 The first estimator used for construct the index is the Principal Component Estimator. Its properties are well discussed in @stocwats:2002. Because there isn't missing data the estimator is suitable.
 
-Although the goal is construct one economic index from the underlying series, it is worthy show the number of components that satisfy several criteria. Each component is associated with an eigenvalue of the correlation matrix of the the raw data. The first principal component (PC) is associated with the largest eigenvalue, the second PC with the second-largest eigenvalue, and so on. The Kaiser-Harris criterion suggests retaining components with eigenvalues greater than 1 unit. Components with eigenvalues less than 1 explain less variance than contained in a single variable. In the Cattel Scree test, the eigenvalues are plotted against their component numbers . Finally, In Parallel Analysis [@haytallescar:2004] are run simulations, extracting eigenvalues from random data matrices of the same size as the original matrix of data. 
+<!-- A scree plot displays the marginal contribution of the kth principal component to the aver- -->
+<!-- age R 2 of the N regressions of X t against the first k principal components. This marginal -->
+<!-- contribution is the average additional explanatory value of the kth factor. When there are -->
+<!-- ^ X , normalized by -->
+<!-- no missing data, the scree plot is a plot of the ordered eigenvalues of sum -->
+<!-- the sum of the eigenvalues. -->
 
-The figure \@ref(fig:scree) displays the scree test based on the observed eigenvalues (as dashed line and points), the mean eigenvalues derived from 1000 random data matrices (as dotdashed line), and the eigenvalues greater than 1 (as a horizontal line at $y = 1$). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
+Although the goal is construct one economic index from the underlying series, it is worthy show the number of components that satisfy several criteria. Each component is associated with an eigenvalue of the correlation matrix of the the raw data. The first principal component (PC) is associated with the largest eigenvalue, the second PC with the second-largest eigenvalue, and so on. The Kaiser-Harris criterion suggests retaining components with eigenvalues greater than 1 unit. Components with eigenvalues less than 1 explain less variance than contained in a single variable. In the Cattel Scree test, the eigenvalues are plotted against their component numbers. Finally, In Parallel Analysis [@haytallescar:2004] are run simulations, extracting eigenvalues from random data matrices of the same size as the original matrix of data. 
 
-(ref:scree) **Scree Plot**: The Figure shows a scree plot (the dashed line), eigenvalues greater than 1 criteria (solid line), and parallel analysis with 1000 simulations (dot-dashed line) suggest retaining a single component.
+The figure \@ref(fig:scree-plot) displays the scree test based on the observed eigenvalues (as dashed line and points), the mean eigenvalues derived from 1000 random data matrices (as dotdashed line), and the eigenvalues greater than 1 (as a horizontal line at $y = 1$). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
 
-```{r scree, cache = TRUE, dependson = c("scree_plot"), fig.cap = "(ref:scree)"}
+(ref:scree-plot) **Scree Plot**: The Figure shows a scree plot (the dashed line), eigenvalues greater than 1 criteria (solid line), and parallel analysis with 1000 simulations (dot-dashed line) suggest retaining a single component.
+
+```{r scree-plot, cache = TRUE, dependson = c("scree_plot_values"), fig.cap = "(ref:scree-plot)"}
 tibble(
-  CN = 1:6, EV = scree.plot[["pc.values"]], SIM = scree.plot[["pc.sim"]]
+  Component_Number = factor(seq_along(chosen_indexes)), 
+  Real = scree_plot[["pc.values"]] / length(chosen_indexes), 
+  Sim = scree_plot[["pc.sim"]] / length(chosen_indexes),
+  Parallel = ifelse(Real > Sim, "greater", "less")
 ) %>% 
-  ggplot(aes(CN, EV)) +
-    geom_hline(aes(yintercept = 1), size = 0.125) +
-    geom_line(aes(CN, SIM), linetype = "dotdash", colour = viridis(2)[1]) +
-    geom_line(aes(CN, EV), linetype = "dashed", colour = viridis(2)[2]) +
-    geom_point(aes(CN, EV), colour = viridis(2)[2]) +
-    scale_x_continuous(breaks = 1:6) +
-    scale_y_continuous(breaks = seq(0, 3, by = 0.5)) +
+  ggplot(aes(Component_Number, Real, fill = Parallel)) +
+    geom_col() +
+    scale_fill_viridis_d(option = "inferno") +
     labs(
       caption = "Source: Own calculations",
-      x = "Component number",
-      y = "Eigen values of principal components"
-    )
+      x = "Factor number (principal component number)",
+      y = "Fraction of total variance of the series explained"
+    ) +
+    theme(legend.position = "none")
 ```
 
 ### Two-step 
@@ -244,11 +343,11 @@ source("./R/Import-USA-Data.R")
 ```
 
 ```{r VAR_data, message = FALSE}
-VAR.data <- USA.data %>% inner_join(DFM.base) 
+VAR.data <- USA.data %>% inner_join(DFM_base) 
 ```
 
 ```{r}
-VAR.base <- vars::VARselect(
+VAR.base <- VARselect(
   VAR.data %>% select(
     Production.all.log.cycle,
     Employment.all.lin.cycle,
@@ -268,7 +367,7 @@ VAR.base <- vars::VARselect(
 
 
 ```{r VAR_baseline}
-VAR.baseline <- vars::VAR(
+VAR.baseline <- VAR(
   VAR.data %>% select(
     Production.all.log.cycle,
     Employment.all.lin.cycle,
@@ -288,7 +387,7 @@ VAR.baseline <- vars::VAR(
 ```
 
 ```{r irf_baseline, warning = FALSE}
-irf.baseline <- vars::irf(
+irf.baseline <- irf(
   VAR.baseline, 
   impulse = "PCA", 
   n.ahead = 60, 
@@ -316,7 +415,7 @@ matrix.irf <- list(matrix.response, matrix.lower, matrix.upper) %>%
   arrange(Variable, Months) %>% 
   mutate(
     Variable = factor(Variable),
-    Variable = forcats::fct_recode(
+    Variable = fct_recode(
       Variable,
       "Production" = "Production.all.log.cycle",
       "Employment" = "Employment.all.lin.cycle",
@@ -359,7 +458,7 @@ matrix.irf %>%
 
 ```{r Granger}
 Granger <- function(Cause) {
-  vars::causality(VAR.baseline, cause = Cause)[["Granger"]][["p.value"]]
+  causality(VAR.baseline, cause = Cause)[["Granger"]][["p.value"]]
 }
 ```
 
@@ -418,7 +517,7 @@ knitr::kable(
 ### Eight-variable VAR {#var-eight}
 
 ```{r var_medium_lag}
-VAR_medium_lag <- vars::VARselect(
+VAR_medium_lag <- VARselect(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
     Employment.manu.lin.cycle, 
@@ -434,7 +533,7 @@ VAR_medium_lag <- vars::VARselect(
 ```
 
 ```{r VAR_medium}
-VAR_medium <- vars::VAR(
+VAR_medium <- VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
     Employment.manu.lin.cycle, 
@@ -451,7 +550,7 @@ VAR_medium <- vars::VAR(
 ```
 
 ```{r irf_medium_production, warning = FALSE}
-irf_medium_production <- vars::irf(
+irf_medium_production <- irf(
   VAR_medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
   response = "Production.NAICS.log.cycle",
@@ -509,7 +608,7 @@ data_plot %>%
 ```
 
 ```{r irf_medium_employment, warning = FALSE}
-irf_medium_employment <- vars::irf(
+irf_medium_employment <- irf(
   VAR_medium, 
   impulse = c("PCA", "StockMarketIndex.log.cycle"), 
   response = "Employment.manu.lin.cycle",
@@ -573,7 +672,7 @@ To identify uncertainty shocks, a Cholesky ordering is used with production orde
 Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-market uncertainty shock. Industrial production displays a fall of around 0.30 \% within 12 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a fall the stock-market is also plotted (dotted line) displaying a much more large drop over the subsequent 2 years. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity.
 
 ```{r fevd_medium, warning = FALSE}
-fevd_medium <- vars::fevd(VAR_medium, 60)
+fevd_medium <- fevd(VAR_medium, 60)
 ```
 
 ```{r fevd_medium_production}
@@ -626,9 +725,9 @@ fevd_medium_R %<>%
 fevd_medium_production %>% 
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = scales::percent) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) +
     scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) +
-    scale_fill_viridis_d() +
+    scale_fill_viridis_d(option = "inferno") +
     labs(
     caption = "Source: Own calculations",
     x = "Horizont",
@@ -643,9 +742,9 @@ fevd_medium_production %>%
 fevd_medium_R %>% 
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
-    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = scales::percent) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) +
     scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) +
-    scale_fill_viridis_d() +
+    scale_fill_viridis_d(option = "inferno") +
     labs(
     caption = "Source: Own calculations",
     x = "Horizont",
@@ -658,7 +757,7 @@ fevd_medium_R %>%
 ### Alternative sets and orderings of variables {#sets-order}
 
 ```{r VAR_trivariate}
-VAR.trivariate <- vars::VAR(
+VAR.trivariate <- VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
     Employment.manu.lin.cycle, 
@@ -670,7 +769,7 @@ VAR.trivariate <- vars::VAR(
 ```
 
 ```{r irf_trivariate, warning = FALSE}
-irf.trivariate <- vars::irf(
+irf.trivariate <- irf(
   VAR.trivariate, 
   impulse = "PCA", 
   response = "Production.NAICS.log.cycle",
@@ -681,7 +780,7 @@ irf.trivariate <- vars::irf(
 ```
 
 ```{r VAR_quadvariate}
-VAR.quadvariate <- vars::VAR(
+VAR.quadvariate <- VAR(
   VAR.data %>% select(
     Production.NAICS.log.cycle, 
     Employment.manu.lin.cycle, 
@@ -694,7 +793,7 @@ VAR.quadvariate <- vars::VAR(
 ```
 
 ```{r irf_quadvariate, warning = FALSE}
-irf.quadvariate <- vars::irf(
+irf.quadvariate <- irf(
   VAR.quadvariate, 
   impulse = "PCA", 
   response = "Production.NAICS.log.cycle",
@@ -705,7 +804,7 @@ irf.quadvariate <- vars::irf(
 ```
 
 ```{r VAR_quadvariate_reverse}
-VAR.quadvariate.reverse <- vars::VAR(
+VAR.quadvariate.reverse <- VAR(
   VAR.data %>% select(
     PCA,
     StockMarketIndex.log.cycle,
@@ -718,7 +817,7 @@ VAR.quadvariate.reverse <- vars::VAR(
 ```
 
 ```{r irf_quadvariate_reverse, warning = FALSE}
-irf.quadvariate.reverse <- vars::irf(
+irf.quadvariate.reverse <- irf(
   VAR.quadvariate.reverse, 
   impulse = "PCA", 
   response = "Production.NAICS.log.cycle",
@@ -759,16 +858,101 @@ tibble(
     ) +
     theme(legend.position = "bottom")
 ```
-# Forecast
 
+# Forecasting
 
+```{r EndOfSample}
+# End of sample dates
+EndOfSample <- VAR.data %>% 
+  tail(nrow(.) - quantile(1:nrow(.), 0.90) + 1) %>% 
+  pull(Date) 
+```
+
+```{r forecast_horizont}
+forecast_horizont <- list(3, 6, 9)
+```
+
+```{r RMSFE_VAR}
+RMSFE_VAR <- function(end_date, number_ahead) {
+  # Variables chosen
+  VAR_data_RMSFE <- c(
+    "Production.NAICS.log.cycle", 
+    "Employment.manu.lin.cycle", 
+    "Labor.manu.lin.cycle",
+    "Prices.urban.log.cycle",
+    "Wages.manu.log.cycle",
+    "FederalFundsRate.lin.cycle",
+    "StockMarketIndex.log.cycle",
+    "PCA"
+  )
+  
+  # Estimate VAR model
+  VAR_model <- VAR(
+    VAR.data %>% 
+      filter(Date <= end_date) %>% 
+      select(VAR_data_RMSFE),
+    lag.max = 24, 
+    ic = "AIC"
+  )
+  
+  # Sample data for n-period ahead forecast
+  raw_data <- VAR.data %>% 
+    filter(
+      between(
+        Date,
+        ceiling_date(end_date %m+% months(1), unit = "month") - days(1),
+        ceiling_date(end_date %m+% months(number_ahead), unit = "month") - days(1)
+      )
+    ) %>% 
+    select(VAR_data_RMSFE)
+  
+  # Compute forecast
+  raw_predictions <- bind_rows(
+    predict(VAR_model, n.ahead = number_ahead)[["fcst"]], 
+    .id = "column_label"
+  ) %>% 
+    head(number_ahead) %>% 
+    select(-column_label)
+  
+  # Compute pseudo-out-of-sample forecast errors
+  raw_data - raw_predictions
+}
+```
+
+```{r Forecast_error}
+Forecast_error <- function(n_ahead) {
+  FE <- map_dfr(
+    EndOfSample %>% head(-n_ahead),
+    RMSFE_VAR,
+    number_ahead = n_ahead
+  ) %>% 
+  summarise_all(~sqrt(mean(.)^2)) 
+  
+  FE
+}
+```
+
+```{r Forecast_error_data, warning = FALSE}
+Forecast_error_data <- map_dfr(forecast_horizont, Forecast_error)
+```
+
+```{r RMSFE-non-asset-market, results = "asis"}
+knitr::kable(
+  Forecast_error_data
+  , digits = 2,
+  , align = c("l", rep("c", 8))
+  , caption = "(ref:RMSFE-non-asset-market)"
+  , caption.short = "Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts"
+  , booktabs = TRUE
+)
+```
 
 
 \clearpage
 
 # Appendix {-}
 
-In the estimations I make use of the r-package `dynfactoR` [@R-dynfactoR] to estimate the DFM, the r-package `psych` [@R-psych] to select the optimal number of components, the r-package `POET` [@R-POET] to select the optimal number of static and dynamic factors and to estimate the VARs models the r-package `vars` [@R-vars] was used.
+In the estimations I make use of the r-package `dynfactoR` [@R-dynfactoR] to estimate the DFM, the r-package `psych` [@R-psych] to select the optimal number of components, to estimate structural breaks in the index I employ the r-package `strucchange` [@R-strucchange] and to estimate the VARs models the r-package `vars` [@R-vars] was used.
 
 \clearpage
 
