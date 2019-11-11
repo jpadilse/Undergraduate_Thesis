@@ -1,12 +1,19 @@
-# Library calls -----------------------------------------------------------
+# R packages --------------------------------------------------------------
 
-pacman::p_load(dplyr, magrittr, purrr, tidyr, tidyquant)
+if (!require(pacman)) install.packages("pacman")
+library(pacman)
+
+p_load(dplyr)
+p_load(magrittr)
+p_load(purrr)
+p_load(tidyr)
+p_load(tidyquant)
 
 # Import series through FED, Yahoo Finance and Quandl API -----------------
 
 # FRED API ----------------------------------------------------------------
 
-FRED.data <- c(
+FRED_data <- c(
   "INDPRO",
   # Industrial Production Index
   # - Seasonally adjusted
@@ -71,26 +78,27 @@ FRED.data <- c(
   tq_get(get = "economic.data", from = "1972-01-01")
 
 # All series of which units are measured in prices need to be given the
-# 100 * log() treatment
+# 100 * log() treatment. Also, the M2 money stock and inflation enter as
+# continuously compounded annual rate of change.
 
-FRED.data %<>%
+FRED_data %<>%
   spread(symbol, price) %>%
   transmute(
     Date = date,
-    Production.all.log = 100 * log(INDPRO),
-    Production.NAICS.log = 100 * log(IPMAN),
-    Production.SIC.log = 100 * log(IPMANSICS),
-    Employment.all.lin = PAYEMS,
-    Employment.manu.lin = MANEMP,
-    Consumption.log = 100 * log(DPCERA3M086SBEA),
-    Prices.log = 100 * log(PCEPI),
-    Prices.urban.log = 100 * log(CPIAUCSL),
-    Wages.all.log = 100 * log(AHETPI),
-    Wages.manu.log = 100 * log(CES3000000008),
-    Labor.all.lin = AWHNONAG,
-    Labor.manu.lin = AWHMAN,
-    FederalFundsRate.lin = FEDFUNDS,
-    M2.cca = 12 * 100 * log(M2SL / lag(M2SL))
+    Production_all_log = 100 * log(INDPRO),
+    Production_NAICS_log = 100 * log(IPMAN),
+    Production_SIC_log = 100 * log(IPMANSICS),
+    Employment_all_lin = PAYEMS,
+    Employment_manu_lin = MANEMP,
+    Consumption_log = 100 * log(DPCERA3M086SBEA),
+    Inflation = 12 * 100 * log(PCEPI / lag(PCEPI)),
+    Inflation_urban = 12 * 100 * log(CPIAUCSL / lag(CPIAUCSL)),
+    Wages_all_log = 100 * log(AHETPI),
+    Wages_manu_log = 100 * log(CES3000000008),
+    Labor_all_lin = AWHNONAG,
+    Labor_manu_lin = AWHMAN,
+    FederalFundsRate_lin = FEDFUNDS,
+    M2_cca = 12 * 100 * log(M2SL / lag(M2SL))
   ) %>%
   drop_na()
 
@@ -105,7 +113,7 @@ ISM <- tq_get(
   column_index = 5
 )
 
-ISM %<>% transmute(Date = date, NewOrders.log = 100 * log(index))
+ISM %<>% transmute(Date = date, NewOrders_log = 100 * log(index))
 
 # Yahoo Finance API -------------------------------------------------------
 
@@ -118,38 +126,38 @@ SP500 <- tq_get(
   periodicity = "monthly"
 )
 
-SP500 %<>% transmute(Date = date, StockMarketIndex.log = 100 * log(adjusted))
+SP500 %<>% transmute(Date = date, StockMarketIndex_log = 100 * log(adjusted))
 
 # Merge data from APIs ----------------------------------------------------
 
-USA.Data <- list(FRED.data, ISM, SP500) %>%
+USA_Data <- list(FRED_data, ISM, SP500) %>%
   reduce(inner_join) %>%
   select(
     Date,
-    Production.all.log,
-    Production.NAICS.log,
-    Production.SIC.log,
-    Employment.all.lin,
-    Employment.manu.lin,
-    Consumption.log,
-    Prices.log,
-    Prices.urban.log,
-    NewOrders.log,
-    Wages.all.log,
-    Wages.manu.log,
-    Labor.all.lin,
-    Labor.manu.lin,
-    FederalFundsRate.lin,
-    StockMarketIndex.log,
-    M2.cca
+    Production_all_log,
+    Production_NAICS_log,
+    Production_SIC_log,
+    Employment_all_lin,
+    Employment_manu_lin,
+    Consumption_log,
+    Inflation,
+    Inflation_urban,
+    NewOrders_log,
+    Wages_all_log,
+    Wages_manu_log,
+    Labor_all_lin,
+    Labor_manu_lin,
+    FederalFundsRate_lin,
+    StockMarketIndex_log,
+    M2_cca
   )
 
 # Hamilton's filter -------------------------------------------------------
 
-USA.Data.detrend <- do.call(
+USA_Data_detrend <- do.call(
   merge,
   map(
-    as.list(timetk::tk_xts(USA.Data)),
+    as.list(timetk::tk_xts(USA_Data)),
     neverhpfilter::yth_filter,
     h = 24,
     p = 12,
@@ -157,14 +165,14 @@ USA.Data.detrend <- do.call(
   )
 )
 
-USA.Data.detrend %<>%
+USA_Data_detrend %<>%
   timetk::tk_tbl() %>%
   rename(Date = index)
 
 # Merge raw and cycle series ----------------------------------------------
 
-USA.Data %<>% inner_join(USA.Data.detrend)
+USA_Data %<>% inner_join(USA_Data_detrend)
 
 # Write data to csv -------------------------------------------------------
 
-readr::write_csv(USA.Data, "./Data/Input/USA-data.csv")
+readr::write_csv(USA_Data, "./Data/Input/USA-data.csv")
