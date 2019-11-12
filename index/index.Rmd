@@ -76,4 +76,18 @@ knitr::write_bib(
 )
 ```
 
+# Preliminary
+
+```{bash xlsx2csv, eval = FALSE}
+# Transform uncertainty indexes from .xlsx to .csv
+
+Rscript ./R/xlsx2csv.R
+```
+
+```{bash API2csv, eval = FALSE}
+# Import series through FED, Yahoo Finance and Quandl API
+
+Rscript ./R/API2csv.R
+```
+
 # Introduction {.unnumbered}
