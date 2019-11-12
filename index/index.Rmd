@@ -76,8 +76,6 @@ knitr::write_bib(
 )
 ```
 
-# Preliminary
-
 ```{bash xlsx2csv, eval = FALSE}
 # Transform uncertainty indexes from .xlsx to .csv
 
