@@ -1,0 +1,872 @@
+# Results {#results}
+
+In this chapter I present the new uncertainty index in [Non-Asset-Market Index]; I compare it with some of the main uncertainty indicators in [Correlation with Uncertainty Indicators]; I analyze the relationship between me proposal and some real and financial variables in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]; and, I perform several robustness exercises in [Robustness].
+
+## Non-Asset-Market Index {#non-asset-market-index}
+
+```{r Import_Uncertainty, cache.extra = file.info("./R/Import-Uncertainty.R")}
+source("./R/Import-Uncertainty.R")
+```
+
+```{r uncertainty_indexes, cache = TRUE, dependson = c("Import_Uncertainty"), message = FALSE}
+uncertainty_indexes <- list(
+  economic_policy_uncertainty,
+  monetary_policy_uncertainty_BBD,
+  monetary_policy_uncertainty_HRS,
+  geopolitical_risk_index,
+  macro_uncertainty_JLN,
+  real_uncertainty_JLN,
+  financial_uncertainty_JLN
+) %>% 
+  reduce(inner_join)
+```
+
+```{r dynamic_factors, cache = TRUE, dependson = c("uncertainty_indexes"), include = FALSE}
+chosen_indexes <- c(
+  "EPUNews", 
+  "MPU_BBD_AWN", 
+  "MPU_BBD_10", 
+  "MPU_HRS", 
+  "GPR",
+  "MU_JLN_h1"
+)
+
+dynamic_factors <- dfm(
+  uncertainty_indexes %>% 
+    select(!!!chosen_indexes) %>% 
+    mutate_all(~scale(.)), 
+  r = 1, 
+  q = 1, 
+  p = 1
+)
+
+write_rds(dynamic_factors, "./Data/Output/dynamic_factors.rds")
+
+DFM_base <- tibble(
+  Date = uncertainty_indexes[["Date"]],
+  PCA = -dynamic_factors[["pca"]][, 1],
+  TwoStep = -dynamic_factors[["twostep"]][, 1],
+  QML_raw = -dynamic_factors[["qml"]][, 1] + 5,
+  QML = (QML_raw / QML_raw[1]) * 100
+)
+```
+
+(ref:non-asset-market-index) **Non-Asset-Market-Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
+
+```{r non-asset-market-index, cache = TRUE, dependson = c("dynamic_factors"), fig.cap = "(ref:non-asset-market-index)", fig.scap = "Non-Asset-Market-Index", out.extra = ""}
+DFM_base %>% 
+  ggplot(aes(Date, QML)) + 
+    geom_cycle(fill = "grey50") +
+    geom_hline(yintercept = quantile(DFM_base[["QML"]], 0.95), size = 0.125) +
+    geom_line() +
+    scale_x_date(date_breaks = "5 year", date_labels = "%Y") +
+    scale_y_continuous(limits = c(0, 300)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "",
+      y = ""
+    )
+```
+
+```{r DescribeIndex}
+DescribeIndex <- function(x) {
+  skew <- skewness(x)
+  kurt <- kurtosis(x) 
+  AR <- lm(x ~ dplyr::lag(x))[["coefficients"]][2]
+  c(skew, kurt, AR)
+}
+```
+
+```{r QLR, include = FALSE}
+QML_ts <- ts(DFM_base[["QML"]], start = c(1985, 1), frequency = 12)
+
+QML_data <- ts.intersect(QML_ts, QML_ts_1 = stats::lag(QML_ts, k = -1))
+
+QLR <- Fstats(QML_ts ~ QML_ts_1, data = QML_data)
+
+sctest(QLR)
+```
+
+```{r date_QLR, include = FALSE}
+date_QLR <- breakpoints(QML_ts ~ QML_ts_1, data = QML_data, h = 0.15)
+  
+coef(date_QLR, breaks = 1)
+```
+
+```{r Residuals_break}
+Residuals_break <- DFM_base %>% 
+  mutate(Break = ifelse(Date > ymd("2007-07-31"), 1, 0)) %>% 
+  lm(QML ~ Break, data = .) %>% 
+  residuals()
+
+DFM_base %<>% mutate(QML = Residuals_break)
+```
+
+I estimate the DFM using one static and dynamic factor, because I am looking for the underlying structure behind uncertainty. The monthly non-asset-market uncertainty index is presented in Figure \@ref(fig:non-asset-market-index), together with the recession dates in the United States, as indicated by the NBER on its web site. The index peaks coincide with well-documented episodes of uncertainty in the financial markets and the real economy, including the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009.
+
+Recession dates clearly correlate with the amount of uncertainty in the market. That is to say, recessionary episodes are followed by a notable uncertainty shock.
+
+In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis and persistence for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence (AR(1) with drift). The basic idea is to calculate an $F$ statistic (often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]) for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$ where $T$ is the total of observations^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9, omitting the leading and trailing 15 \% of observations.], and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value [@andrews:2003]. This modified Chow test is variously called the *Quand Likelihood Ratio (QLR) statistic* [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks, see @hansen:2001.]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression.
+
+The Chow test is the Wald statistic testing
+the hypothesis that the factor loadings are constant in a given equation, against the alter-
+native that they have different values before and after the Great Moderation break date of
+1984q4
+
+The Quandt
+likelihood ratio (QLR) version allows for an unknown break date and is the maximum
+value of the Chow statistic (the sup-Wald statistic) for potential breaks in the central
+70% of the sample, see Breitung and Eickmeier (2011) for additional discussion.
+
+
+(ref:summary-table) **Summary Statistics of Non-Asset-Market Index**: The table reports the first-order autocorrelation coefficient and estimates of skewness and kurtosis. 
+
+```{r summary-table, results = "asis"}
+knitr::kable(
+  tibble(
+    Statistic = c("Skewness", "Kurtosis", "Persistence, AR(1)"),
+    `1985:M1--2017:M7` = DescribeIndex(
+      DFM_base[["QML"]]
+    ),
+    `1985:M1--2007:M7` = DescribeIndex(
+      DFM_base[DFM_base[["Date"]] <= "2007-07-31", ][["QML"]]
+    ),
+    `2007:M8--2017:M7` = DescribeIndex(
+      DFM_base[DFM_base[["Date"]] >= "2007-08-31", ][["QML"]]
+    )
+  )
+  , digits = 2,
+  , align = c("l", "c", "c", "c")
+  , caption = "(ref:summary-table)"
+  , caption.short = "Summary Statistics of Non-Asset-Market Index"
+  , booktabs = TRUE
+)
+```
+
+```{r scree_plot_values, cache = TRUE, include = FALSE}
+scree_plot <- fa.parallel(
+  uncertainty_indexes %>% 
+    select(!!!chosen_indexes) %>% 
+    mutate_all(~scale(.)),
+  fa = "pc",
+  n.iter = 1000,
+  plot = FALSE
+)
+```
+
+The first estimator used for construct the index is the Principal Component Estimator. Its properties are well discussed in @stocwats:2002. Because there isn't missing data the estimator is suitable.
+
+<!-- A scree plot displays the marginal contribution of the kth principal component to the aver- -->
+<!-- age R 2 of the N regressions of X t against the first k principal components. This marginal -->
+<!-- contribution is the average additional explanatory value of the kth factor. When there are -->
+<!-- ^ X , normalized by -->
+<!-- no missing data, the scree plot is a plot of the ordered eigenvalues of sum -->
+<!-- the sum of the eigenvalues. -->
+
+Although the goal is construct one economic index from the underlying series, it is worthy show the number of components that satisfy several criteria. Each component is associated with an eigenvalue of the correlation matrix of the the raw data. The first principal component (PC) is associated with the largest eigenvalue, the second PC with the second-largest eigenvalue, and so on. The Kaiser-Harris criterion suggests retaining components with eigenvalues greater than 1 unit. Components with eigenvalues less than 1 explain less variance than contained in a single variable. In the Cattel Scree test, the eigenvalues are plotted against their component numbers. Finally, In Parallel Analysis [@haytallescar:2004] are run simulations, extracting eigenvalues from random data matrices of the same size as the original matrix of data. 
+
+The figure \@ref(fig:scree-plot) displays the scree test based on the observed eigenvalues (as dashed line and points), the mean eigenvalues derived from 1000 random data matrices (as dotdashed line), and the eigenvalues greater than 1 (as a horizontal line at $y = 1$). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
+
+(ref:scree-plot) **Scree Plot**: The Figure shows a scree plot and parallel analysis with 1000 simulations --all components with eigenvalue greater that simulated value from parallel analysis are fill in black-- which suggest retaining a single component.
+
+```{r scree-plot, cache = TRUE, dependson = c("scree_plot_values"), fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot", out.extra = ""}
+tibble(
+  Component_Number = factor(seq_along(chosen_indexes)), 
+  Real = scree_plot[["pc.values"]] / length(chosen_indexes), 
+  Sim = scree_plot[["pc.sim"]] / length(chosen_indexes),
+  Parallel = ifelse(Real > Sim, "greater", "less")
+) %>% 
+  ggplot(aes(Component_Number, Real, fill = Parallel)) +
+    geom_col() +
+    scale_fill_viridis_d(option = "inferno") +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Factor number (principal component number)",
+      y = "Fraction of total variance of the series explained"
+    ) +
+    theme(legend.position = "none")
+```
+
+The sconed estimator used is the Two-Step developed by @dozgianreic:2011. This methods uses PCA estimates and runs them through Kalman filter.
+
+The third estimator used is the Quasi-Maximum Likelihood by @dozgianreic:2012. Similar to two-setp estimator, however Kalman filtering procedure is iterated until Expectation-Maximization (EM) algorithm converges.
+
+All three estimators gives similar results, from now I use for analysis the index obtained from the Quasi-Maximum Likelihood method.
+
+## Correlation with Uncertainty Indicators {#correlatio-with-uncertainty-indicators}
+
+## Estimates on the Impact of Non-Asset-Market Uncertainty Shocks {#var-baseline}
+
+```{r Import_USA_Data, cache.extra = file.info("./R/Import-USA-Data.R")}
+source("./R/Import-USA-Data.R")
+```
+
+```{r VAR_data, cache = TRUE, dependson = c("Import_USA_Data"), message = FALSE}
+VAR_data <- USA_data %>% 
+  inner_join(uncertainty_indexes) %>% 
+  inner_join(DFM_base)
+```
+
+```{r chosen_variables, cache = TRUE, dependson = c("VAR_data")}
+chosen_variables <- c(
+  "Production_all_log_cycle",
+  "Employment_all_lin_cycle",
+  "Consumption_log_cycle",
+  "Inflation_cycle",
+  "NewOrders_log_cycle",
+  "Wages_all_log_cycle",
+  "Labor_all_lin_cycle",
+  "FederalFundsRate_lin_cycle",
+  "StockMarketIndex_log_cycle",
+  "M2_cca_cycle",
+  "QML"
+)
+```
+
+```{r VAR_baseline_lag, cache = TRUE, dependson = c("chosen_variables", "VAR_data")}
+VAR_baseline_lag <- VARselect(
+  VAR_data %>% select(!!!chosen_variables),
+  lag.max = 12
+)
+```
+
+```{r VAR_baseline, cache = TRUE, dependson = c("chosen_variables", "VAR_data")}
+VAR_baseline <- VAR(
+  VAR_data %>% select(!!!chosen_variables),
+  lag.max = 12,
+  ic = "AIC"
+)
+```
+
+```{r irf_baseline,  cache = TRUE, dependson = c("VAR_baseline"), warning = FALSE}
+irf_baseline <- irf(
+  VAR_baseline,
+  impulse = "QML",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.66
+)
+```
+
+```{r irf_baseline_matrix, cache = TRUE, dependson = c("irf_baseline")}
+matrix_response <- as_tibble(irf_baseline[["irf"]][["QML"]]) %>%
+  mutate(Months = row_number()) %>%
+  pivot_longer(-Months, names_to = "Variable", values_to = "Response")
+
+matrix_lower <- as_tibble(irf_baseline[["Lower"]][["QML"]]) %>%
+  mutate(Months = row_number()) %>%
+  pivot_longer(-Months, names_to = "Variable", values_to = "Lower")
+
+matrix_upper <- as_tibble(irf_baseline[["Upper"]][["QML"]]) %>%
+  mutate(Months = row_number()) %>%
+  pivot_longer(-Months, names_to = "Variable", values_to = "Upper")
+
+matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
+  reduce(inner_join, by  = c("Variable", "Months")) %>%
+  select(Variable, Months, Response, Lower, Upper) %>%
+  arrange(Variable, Months) %>%
+  mutate(
+    Variable = factor(Variable),
+    Variable = fct_recode(
+      Variable,
+      "Production" = "Production_all_log_cycle",
+      "Employment" = "Employment_all_lin_cycle",
+      "New Orders" = "NewOrders_log_cycle",
+      "Consumption" = "Consumption_log_cycle",
+      "Federal Funds Rate" = "FederalFundsRate_lin_cycle",
+      "Stock Market Index" = "StockMarketIndex_log_cycle"
+    )
+  )
+```
+
+(ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r irf-baseline-plot, cache = TRUE, dependson = c("irf_baseline_matrix"), fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics under Uncertainty", out.extra = ""}
+matrix_irf %>%
+  filter(Variable %in% c(
+    "Production",
+    "Employment",
+    "New Orders",
+    "Consumption",
+    "Federal Funds Rate",
+    "Stock Market Index"
+  )) %>%
+  ggplot(aes(Months, Response)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      aes(ymin = Lower, ymax = Upper), 
+      fill = "steelblue", 
+      alpha = 0.125
+    ) +
+    geom_line(colour = "steelblue", linetype = "dashed") +
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+    facet_wrap(
+      ~ Variable,
+      nrow = 3,
+      scales = "free_y",
+    ) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact"
+    )
+```
+
+```{r Granger}
+Granger <- function(Cause) {
+  causality(VAR_baseline, cause = Cause)[["Granger"]][["p.value"]]
+}
+```
+
+```{r Names_VAR}
+Names_VAR <-   c(
+  "Production",
+  "Employment",
+  "Consumption",
+  "Inflation",
+  "New Orders",
+  "Wages",
+  "Labor",
+  "Federal Funds rate",
+  "Stock market index",
+  "M2",
+  "Non-Asset-Market Uncertainty"
+)
+```
+
+```{r p_values_granger}
+p_values_granger <- map_dbl(chosen_variables, Granger)
+```
+
+(ref:Granger-table) **Granger-Causality Tests**: The entries show the $p$-values for F-tests that lags of the variable in the row labeled *Regressor* do not enter the reduced form equation for all remaining variables.
+
+```{r Granger-table, results = "asis"}
+knitr::kable(
+  tibble(
+    Regressor = Names_VAR,
+    `p-values` = p_values_granger
+  )
+  , digits = 2,
+  , align = c("l", "c"),
+  , caption = "(ref:Granger-table)"
+  , caption.short = "Granger-Causality Tests",
+  , booktabs = TRUE
+  , linesep = ""
+)
+```
+
+## Robustness {#robustness}
+
+```{r chosen_variables_eight, cache = TRUE, dependson = c("VAR_data")}
+chosen_variables_eight <- c(
+  "Production_NAICS_log_cycle",
+  "Employment_manu_lin_cycle",
+  "Inflation_urban_cycle",
+  "Wages_manu_log_cycle",
+  "Labor_manu_lin_cycle",
+  "FederalFundsRate_lin_cycle",
+  "StockMarketIndex_log_cycle",
+  "QML"
+)
+```
+
+```{r var_medium_lag}
+VAR_medium_lag <- VARselect(
+  VAR_data %>% select(!!!chosen_variables_eight),
+  lag.max = 24
+)
+```
+
+```{r VAR_medium}
+VAR_medium <- VAR(
+  VAR_data %>% select(!!!chosen_variables_eight),
+  p = 3
+  #lag.max = 24,
+  #ic = "AIC"
+)
+```
+
+```{r irf_medium_production, warning = FALSE}
+irf_medium_production <- irf(
+  VAR_medium,
+  impulse = c("QML", "StockMarketIndex_log_cycle"),
+  response = "Production_NAICS_log_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.66
+)
+```
+
+```{r irf_medium_production_matrix}
+irf_medium_production_matrix <- tibble(
+  Months = 0:60,
+  `Response to a uncertainty shock` = as.vector(
+    irf_medium_production[["irf"]][["QML"]]
+  ),
+  QML_lower = as.vector(irf_medium_production[["Lower"]][["QML"]]),
+  QML_upper = as.vector(irf_medium_production[["Upper"]][["QML"]]),
+  `Response to a stock market shock` = -as.vector(
+    irf_medium_production[["irf"]][["StockMarketIndex_log_cycle"]]
+  )
+) %>%
+  gather(
+    `Response to a uncertainty shock`,
+    `Response to a stock market shock`,
+    key = "Imp",
+    value = "Res"
+  )
+```
+
+(ref:production-medium) **Decline of production under uncertainty**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market (model with 3 lags, selected by the Akaike Information Criterion), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r production-medium, cache = TRUE, fig.cap = "(ref:production-medium)", fig.scap = "Decline of production under uncertainty"}
+irf_medium_production_matrix %>%
+  ggplot(aes(Months, Res)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      data = irf_medium_production_matrix %>% 
+        filter(Imp == "Response to a uncertainty shock"),
+      aes(ymin = QML_lower, ymax = QML_upper),
+      fill = "steelblue",
+      alpha = 0.125
+    ) +
+    geom_line(aes(colour = Imp, linetype = Imp)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(0.20, -0.60, by = -0.05)) +
+    scale_color_manual(values = c(viridis(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "% impact on production",
+      colour = "",
+      linetype = ""
+    ) +
+    theme(legend.position = "bottom")
+```
+
+```{r irf_medium_employment, warning = FALSE}
+irf_medium_employment <- irf(
+  VAR_medium,
+  impulse = c("QML", "StockMarketIndex_log_cycle"),
+  response = "Employment_manu_lin_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.66
+)
+```
+
+```{r irf_medium_employment_matrix}
+irf_medium_employment_matrix <- tibble(
+  Months = 0:60,
+  `Response to a uncertainty shock` = as.vector(
+    irf_medium_employment[["irf"]][["QML"]]
+  ),
+  QML_lower = as.vector(irf_medium_employment[["Lower"]][["QML"]]),
+  QML_upper = as.vector(irf_medium_employment[["Upper"]][["QML"]]),
+  `Response to a stock market shock` = -as.vector(
+    irf_medium_employment[["irf"]][["StockMarketIndex_log_cycle"]]
+  )
+) %>%
+  gather(
+    `Response to a uncertainty shock`,
+    `Response to a stock market shock`,
+    key = "Imp",
+    value = "Res"
+  )
+```
+
+(ref:employment-medium) **Decline of employment under uncertainty**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r employment-medium, cache = TRUE, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of employment under uncertainty", out.extra = ""}
+irf_medium_employment_matrix %>%
+  ggplot(aes(Months, Res)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      data = irf_medium_employment_matrix %>%
+        filter(Imp == "Response to a uncertainty shock"),
+      aes(ymin = QML_lower, ymax = QML_upper),
+      fill = "steelblue",
+      alpha = 0.125
+    ) +
+    geom_line(aes(colour = Imp, linetype = Imp)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(20, -60, by = -10)) +
+    scale_color_manual(values = c(viridis(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact on employment",
+      colour = "",
+      linetype = ""
+    ) +
+    theme(legend.position = "bottom")
+```
+
+<!-- The set the variables in the estimation are industrial production in manufacturing, employment in manufacturing, average hours in manufacturing, consumer price index, average hourly earnings for production workers in manufacturing, federal funds rate, stock-market index and non-asset-market uncertainty. -->
+
+<!-- To identify uncertainty shocks, a Cholesky ordering is used with production ordered first, followed by employment, labor, prices, wages, federal funds rate, stock market index and non-market uncertainty ordered last. The ordering is based on the assumptions that shocks instantaneously influence the stock market, then prices (wages, the consumer price index (CPI), and interest rates), and finally quantities (hours, employment, and output). -->
+
+<!-- Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-market uncertainty shock. Industrial production displays a fall of around 0.30 \% within 12 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a fall the stock-market is also plotted (dotted line) displaying a much more large drop over the subsequent 2 years. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity. -->
+
+<!-- ```{r fevd_medium, warning = FALSE} -->
+<!-- fevd_medium <- fevd(VAR_medium, 60) -->
+<!-- ``` -->
+
+<!-- ```{r fevd_medium_production} -->
+<!-- fevd_medium_production <- as_tibble( -->
+<!--   fevd_medium[["Production.NAICS.log.cycle"]] -->
+<!-- ) -->
+
+<!-- fevd_medium_production %<>%  -->
+<!--   rename( -->
+<!--     Production = Production.NAICS.log.cycle, -->
+<!--     Employment = Employment.manu.lin.cycle, -->
+<!--     Prices = Prices.urban.log.cycle, -->
+<!--     Wages = Wages.manu.log.cycle, -->
+<!--     Labor = Labor.manu.lin.cycle, -->
+<!--     `Federal funds rate` = FederalFundsRate.lin.cycle, -->
+<!--     `Stock market index` = StockMarketIndex.log.cycle, -->
+<!--     Uncertainty = PCA   -->
+<!--   ) %>%  -->
+<!--   mutate(N = row_number()) %>%  -->
+<!--   gather(Production:Uncertainty, key = "Variable", value = "Percentage") %>%  -->
+<!--   mutate(Variable = factor(Variable, levels = unique(Variable))) %>%  -->
+<!--   arrange(N) -->
+<!-- ``` -->
+
+<!-- ```{r fevd_medium_R} -->
+<!-- fevd_medium_R <- as_tibble( -->
+<!--   fevd_medium[["FederalFundsRate.lin.cycle"]] -->
+<!-- ) -->
+
+<!-- fevd_medium_R %<>%  -->
+<!--   rename( -->
+<!--     Production = Production.NAICS.log.cycle, -->
+<!--     Employment = Employment.manu.lin.cycle, -->
+<!--     Prices = Prices.urban.log.cycle, -->
+<!--     Wages = Wages.manu.log.cycle, -->
+<!--     Labor = Labor.manu.lin.cycle, -->
+<!--     `Federal funds rate` = FederalFundsRate.lin.cycle, -->
+<!--     `Stock market index` = StockMarketIndex.log.cycle, -->
+<!--     Uncertainty = PCA   -->
+<!--   ) %>%  -->
+<!--   mutate(N = row_number()) %>%  -->
+<!--   gather(Production:Uncertainty, key = "Variable", value = "Percentage") %>%  -->
+<!--   mutate(Variable = factor(Variable, levels = unique(Variable))) %>% -->
+<!--   arrange(N)  -->
+<!-- ``` -->
+
+<!-- (ref:fevd-medium-production) **Forecast error variance decomposition for production**: The Figure shows fractions of the forecast error variance due to production shocks for the eight variables. The sample period is January 1985 to July 2017. -->
+
+<!-- ```{r fevd-medium-production-plot, cache = TRUE, fig.cap = "(ref:fevd-medium-production)"} -->
+<!-- fevd_medium_production %>%  -->
+<!--   ggplot(aes(N, Percentage)) + -->
+<!--     geom_area(aes(fill = Variable), colour = "black", size = 0.20) + -->
+<!--     scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) + -->
+<!--     scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) + -->
+<!--     scale_fill_viridis_d(option = "inferno") + -->
+<!--     labs( -->
+<!--     caption = "Source: Own calculations", -->
+<!--     x = "Horizont", -->
+<!--     y = "", -->
+<!--     fill = "" -->
+<!--     ) -->
+<!-- ``` -->
+
+<!-- (ref:fevd-medium-R-plot) **Forecast error variance decomposition for federal funds rate**: The Figure shows fractions of the forecast error variance due to federal funds rate shocks for the eight variables. The sample period is January 1985 to July 2017. -->
+
+<!-- ```{r fevd-medium-R-plot, cache = TRUE, fig.cap = "(ref:fevd-medium-R-plot)"} -->
+<!-- fevd_medium_R %>%  -->
+<!--   ggplot(aes(N, Percentage)) + -->
+<!--     geom_area(aes(fill = Variable), colour = "black", size = 0.20) + -->
+<!--     scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) + -->
+<!--     scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) + -->
+<!--     scale_fill_viridis_d(option = "inferno") + -->
+<!--     labs( -->
+<!--     caption = "Source: Own calculations", -->
+<!--     x = "Horizont", -->
+<!--     y = "", -->
+<!--     fill = "" -->
+<!--     ) -->
+<!-- ``` -->
+
+
+<!-- ### Alternative sets and orderings of variables {#sets-order} -->
+
+<!-- ```{r VAR_trivariate} -->
+<!-- VAR.trivariate <- VAR( -->
+<!--   VAR.data %>% select( -->
+<!--     Production.NAICS.log.cycle,  -->
+<!--     Employment.manu.lin.cycle,  -->
+<!--     PCA -->
+<!--   ),  -->
+<!--   lag.max = 12,  -->
+<!--   ic = "SC" -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r irf_trivariate, warning = FALSE} -->
+<!-- irf.trivariate <- irf( -->
+<!--   VAR.trivariate,  -->
+<!--   impulse = "PCA",  -->
+<!--   response = "Production.NAICS.log.cycle", -->
+<!--   n.ahead = 60,  -->
+<!--   runs = 100,  -->
+<!--   ci = 0.86 -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r VAR_quadvariate} -->
+<!-- VAR.quadvariate <- VAR( -->
+<!--   VAR.data %>% select( -->
+<!--     Production.NAICS.log.cycle,  -->
+<!--     Employment.manu.lin.cycle,  -->
+<!--     StockMarketIndex.log.cycle, -->
+<!--     PCA -->
+<!--   ),  -->
+<!--   lag.max = 12,  -->
+<!--   ic = "SC" -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r irf_quadvariate, warning = FALSE} -->
+<!-- irf.quadvariate <- irf( -->
+<!--   VAR.quadvariate,  -->
+<!--   impulse = "PCA",  -->
+<!--   response = "Production.NAICS.log.cycle", -->
+<!--   n.ahead = 60,  -->
+<!--   runs = 100,  -->
+<!--   ci = 0.86 -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r VAR_quadvariate_reverse} -->
+<!-- VAR.quadvariate.reverse <- VAR( -->
+<!--   VAR.data %>% select( -->
+<!--     PCA, -->
+<!--     StockMarketIndex.log.cycle, -->
+<!--     Employment.manu.lin.cycle,  -->
+<!--     Production.NAICS.log.cycle  -->
+<!--   ),  -->
+<!--   lag.max = 12,  -->
+<!--   ic = "SC" -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r irf_quadvariate_reverse, warning = FALSE} -->
+<!-- irf.quadvariate.reverse <- irf( -->
+<!--   VAR.quadvariate.reverse,  -->
+<!--   impulse = "PCA",  -->
+<!--   response = "Production.NAICS.log.cycle", -->
+<!--   n.ahead = 60,  -->
+<!--   runs = 100,  -->
+<!--   ci = 0.86 -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- In Figure \@ref(fig:robustness) the VAR is reestimated using a simple trivariate VAR (industrial production, employment and non-asset-market uncertainty index only) also display a drop (dashed line). The "quadvariate" VAR (industrial production, employment, stock-market and non-asset-market uncertainty index only) also displays a similar drop (solid line), as does the quadvariate VAR with the variable ordering reversed (dotted line). Hence the response of industrial production to a uncertainty shock appears robust to both the basic selection and the ordering of variables. -->
+
+<!-- (ref:robustness) **VAR model is robust to different variable sets and ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of non-asset-market uncertainty. The estimation period runs from January 1985 to July 2017. The axe is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production). -->
+
+<!-- ```{r robustness, cache = TRUE, fig.cap = "(ref:robustness)"} -->
+<!-- tibble( -->
+<!--   Months = 0:60, -->
+<!--   Trivariate = irf.trivariate[["irf"]][["PCA"]], -->
+<!--   Quadvariate = irf.quadvariate[["irf"]][["PCA"]], -->
+<!--   `Quadvariate in reverse` = irf.quadvariate.reverse[["irf"]][["PCA"]] -->
+<!-- ) %>%  -->
+<!--   gather( -->
+<!--     Trivariate, Quadvariate, `Quadvariate in reverse`,  -->
+<!--     key = "VAR",  -->
+<!--     value = "Shock" -->
+<!--   ) %>%  -->
+<!--   ggplot(aes(Months, Shock)) + -->
+<!--     geom_hline(aes(yintercept = 0), size = 0.125) + -->
+<!--     geom_line(aes(colour = VAR, linetype = VAR)) + -->
+<!--     scale_x_continuous(breaks = seq(0, 60, by = 5)) + -->
+<!--     scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) + -->
+<!--     scale_color_viridis_d() + -->
+<!--     labs( -->
+<!--       caption = "Source: Own calculations", -->
+<!--       x = "Months after the shock", -->
+<!--       y = "% impact on production", -->
+<!--       colour = "", -->
+<!--       linetype = "" -->
+<!--     ) + -->
+<!--     theme(legend.position = "bottom") -->
+<!-- ``` -->
+
+## Forecasting
+
+```{r EndOfSample}
+# End of sample dates
+EndOfSample <- VAR_data %>%
+  tail(nrow(.) - quantile(1:nrow(.), 0.90) + 1) %>%
+  pull(Date)
+```
+
+```{r forecast_horizont}
+forecast_horizont <- list(3, 6, 9)
+```
+
+```{r chosen_variables_forecast}
+chosen_variables_forecast <- c(
+  "Production_NAICS_log_cycle",
+  "Employment_manu_lin_cycle",
+  "Inflation_urban_cycle",
+  "Wages_manu_log_cycle",
+  "Labor_manu_lin_cycle",
+  "FederalFundsRate_lin_cycle",
+  "StockMarketIndex_log_cycle",
+  "QML"
+)
+```
+
+```{r chosen_variables_forecast_org}
+chosen_variables_forecast_org <- c(
+  "Production_NAICS_log_cycle",
+  "Employment_manu_lin_cycle",
+  "Inflation_urban_cycle",
+  "Wages_manu_log_cycle",
+  "Labor_manu_lin_cycle",
+  "FederalFundsRate_lin_cycle",
+  "StockMarketIndex_log_cycle",
+  "MU_JLN_h1"
+)
+```
+
+```{r RMSFE_VAR}
+RMSFE_VAR <- function(end_date, number_ahead, variables) {
+  # Estimate VAR model
+  VAR_model <- VAR(
+    VAR_data %>%
+      filter(Date <= end_date) %>%
+      select(!!!variables),
+    lag.max = 24,
+    ic = "AIC"
+  )
+
+  # Sample data for n-period ahead forecast
+  raw_data <- VAR_data %>%
+    filter(
+      between(
+        Date,
+        ceiling_date(end_date %m+% months(1), unit = "month") - days(1),
+        ceiling_date(end_date %m+% months(number_ahead), unit = "month") - days(1)
+      )
+    ) %>%
+    select(!!!variables)
+
+  # Compute forecast
+  raw_predictions <- bind_rows(
+    predict(VAR_model, n.ahead = number_ahead)[["fcst"]],
+    .id = "column_label"
+  ) %>%
+    head(number_ahead) %>%
+    select(-column_label)
+
+  # Compute pseudo-out-of-sample forecast errors
+  raw_data - raw_predictions
+}
+```
+
+```{r Forecast_error}
+Forecast_error <- function(n_ahead, variables_forecast) {
+  FE <- map_dfr(
+    EndOfSample %>% head(-n_ahead),
+    RMSFE_VAR,
+    number_ahead = n_ahead,
+    variables = variables_forecast
+  ) %>%
+  summarise_all(~sqrt(mean(.)^2))
+
+  FE
+}
+```
+
+```{r Forecast_error_data, warning = FALSE}
+Forecast_error_data <- map_dfr(
+  forecast_horizont, 
+  Forecast_error, 
+  variables_forecast = chosen_variables_forecast
+)
+```
+
+(ref:RMSFE-non-asset-market) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
+
+```{r RMSFE-non-asset-market, results = "asis"}
+knitr::kable(
+  Forecast_error_data %>%
+    rename(
+      Production = Production_NAICS_log_cycle,
+      Employment = Employment_manu_lin_cycle,
+      Labor = Labor_manu_lin_cycle,
+      Inflation = Inflation_urban_cycle,
+      Wages = Wages_manu_log_cycle,
+      `Federal Funds rate` = FederalFundsRate_lin_cycle,
+      `Stock market index` = StockMarketIndex_log_cycle,
+      `Uncertainty index (NAM)` = QML
+    ) %>%
+    mutate(`Forecast Horizont` = c(paste0(forecast_horizont, " months"))) %>%
+    select(`Forecast Horizont`, everything()) %>%
+    gather(
+      -`Forecast Horizont`,
+      key = "Variable",
+      value = "Temporal",
+      factor_key = TRUE
+    ) %>%
+    spread(key = `Forecast Horizont`, value = "Temporal")
+  , digits = 2,
+  , align = c("l", rep("c", 3))
+  , caption = "(ref:RMSFE-non-asset-market)"
+  , caption.short = "Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts"
+  , booktabs = TRUE
+  , linesep = ""
+)
+```
+
+
+
+
+```{r Forecast_error_data_org, warning = FALSE}
+Forecast_error_data_org <- map_dfr(
+  forecast_horizont, 
+  Forecast_error, 
+  variables_forecast = chosen_variables_forecast_org
+)
+```
+
+(ref:RMSFE-non-asset-market-org) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
+
+```{r RMSFE-non-asset-market-org, results = "asis"}
+knitr::kable(
+  Forecast_error_data_org %>%
+    rename(
+      Production = Production_NAICS_log_cycle,
+      Employment = Employment_manu_lin_cycle,
+      Labor = Labor_manu_lin_cycle,
+      Inflation = Inflation_urban_cycle,
+      Wages = Wages_manu_log_cycle,
+      `Federal Funds rate` = FederalFundsRate_lin_cycle,
+      `Stock market index` = StockMarketIndex_log_cycle,
+      `Uncertainty index (NAM)` = MU_JLN_h1
+    ) %>%
+    mutate(`Forecast Horizont` = c(paste0(forecast_horizont, " months"))) %>%
+    select(`Forecast Horizont`, everything()) %>%
+    gather(
+      -`Forecast Horizont`,
+      key = "Variable",
+      value = "Temporal",
+      factor_key = TRUE
+    ) %>%
+    spread(key = `Forecast Horizont`, value = "Temporal")
+  , digits = 2,
+  , align = c("l", rep("c", 3))
+  , caption = "(ref:RMSFE-non-asset-market)"
+  , caption.short = "Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts"
+  , booktabs = TRUE
+  , linesep = ""
+)
+```
