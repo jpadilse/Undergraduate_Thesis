@@ -7,6 +7,7 @@ library(pacman)
 p_load(dplyr)
 p_load(magrittr)
 p_load(purrr)
+p_load(stringr)
 p_load(tidyr)
 p_load(tidyquant)
 
@@ -172,7 +173,9 @@ USA_Data_detrend %<>%
 
 # Merge raw and cycle series ----------------------------------------------
 
-USA_Data %<>% inner_join(USA_Data_detrend)
+USA_Data %<>%
+  inner_join(USA_Data_detrend) %>%
+  rename_all(~ str_replace(., "\\.", "_"))
 
 # Write data to csv -------------------------------------------------------
 
