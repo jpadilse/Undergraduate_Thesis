@@ -1,6 +1,13 @@
-# Library calls -----------------------------------------------------------
+# R packages --------------------------------------------------------------
 
-pacman::p_load(dplyr, lubridate, magrittr, readr)
+if (!require(pacman)) install.packages("pacman")
+
+library(pacman)
+
+p_load(dplyr)
+p_load(lubridate)
+p_load(magrittr)
+p_load(readr)
 
 # Import Uncertainty Indexes ----------------------------------------------
 
@@ -44,13 +51,13 @@ geopolitical_risk_index <- read_csv(
 
 # Survey-Based Macroeconomic Uncertainty ----------------------------------
 
-# survey_based_uncertainty <- read_csv(
-#   "./Data/Input/SurveyBaseUncertainty.csv",
-#   col_names = c("Date", "SB"),
-#   col_types = "?d",
-#   skip = 1,
-#   n_max = 5889
-# )
+survey_based_uncertainty <- read_csv(
+  "./Data/Input/SurveyBaseUncertainty.csv",
+  col_names = c("Date", "SB"),
+  col_types = "?d",
+  skip = 1,
+  n_max = 5889
+)
 
 # Econometric Measures of Uncertainty -------------------------------------
 
@@ -101,7 +108,7 @@ geopolitical_risk_index %<>%
 
 # Survey-based macroeconomic uncertainty ----------------------------------
 
-# survey_based_uncertainty %<>% mutate(Date = ymd(Date))
+survey_based_uncertainty %<>% mutate(Date = ymd(Date))
 
 # Econometric measures of uncertainty -------------------------------------
 
