@@ -1,0 +1,7 @@
+`r if(knitr:::is_latex_output()) '\\appendix'`
+
+`r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'` 
+
+# Replication
+
+In the estimations I make use of the r-package `dynfactoR` [@R-dynfactoR] to estimate the DFM, the r-package `psych` [@R-psych] to select the optimal number of components, to estimate structural breaks in the index I employ the r-package `strucchange` [@R-strucchange] and to estimate the VARs models the r-package `vars` [@R-vars] was used.
