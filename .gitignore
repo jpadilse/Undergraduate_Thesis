@@ -1,0 +1,20 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Log files
+Thesis.log
+
+# Binary files
+FinancialUncertaintyToCirculate.xlsx
+gpr_web_latest.xlsx 
+HRS_MPU_monthly.xlsx                
+MacroUncertaintyToCirculate.xlsx
+RealUncertaintyToCirculate.xlsx     
+Scotti_data28june2019.xls      
+US_MPU_monthly.xlsx            
+US_Policy_Uncertainty_Data.xlsx
+
+# Directories
+_bookdown_files/
