@@ -2,11 +2,12 @@ book_filename: "Thesis"
 chapter_name: "Chapter "
 rmd_files: 
     - "index.Rmd"
-    - "01-chap1.Rmd"
-    - "02-chap2.Rmd"
+    - "01-Literature.Rmd"
+    - "02-Methodology.Rmd"
+    - "03-Data.Rmd"
     - "04-Results.Rmd"
-    - "05-conclusion.Rmd"
-    - "06-appendix.Rmd"
-    - "99-references.Rmd"
+    - "05-Conclusion.Rmd"
+    - "06-Appendix.Rmd"
+    - "99-References.Rmd"
 download: [["thesis.pdf", "PDF"], ["thesis.docx", "Word"]]
 delete_merged_file: true
