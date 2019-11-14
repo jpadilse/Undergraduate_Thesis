@@ -41,6 +41,7 @@ p_load(dynfactoR)
 p_load(forcats)
 p_load(ggthemes)
 p_load(ggts)
+p_load(here)
 p_load(magrittr)
 p_load(psych)
 p_load(readr)
@@ -64,6 +65,7 @@ theme_set(theme_tufte())
 conflicted::conflict_prefer("select", "dplyr")
 conflicted::conflict_prefer("filter", "dplyr")
 conflicted::conflict_prefer("VAR", "vars")
+conflicted::conflict_prefer("here", "here")
 ```
 
 ```{r write_bib, warning = FALSE}
@@ -86,6 +88,10 @@ Rscript ./R/xlsx2csv.R
 # Import series through FED, Yahoo Finance and Quandl API
 
 Rscript ./R/API2csv.R
+```
+
+```{r comma}
+comma <- function(x) format(x, digits = 2, big.mark = ",")
 ```
 
 # Introduction {.unnumbered}
