@@ -2,10 +2,6 @@
 
 `r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'` 
 
-# Main packages used
-
-In the estimations I make use of the r-package `dynfactoR` [@R-dynfactoR] to estimate the DFM, the r-package `psych` [@R-psych] to select the optimal number of components, to estimate structural breaks in the index I employ the r-package `strucchange` [@R-strucchange] and to estimate the VARs models the r-package `vars` [@R-vars] was used.
-
 # Reproducibility
 
 Looking for the reproducibility of the main results in the text I save all files and scripts in a Github repository <https://github.com/jpadilse/Undergraduate_Thesis>. This allows replicate each model, graph and table of the document without any necessary modification. Henceforth, the steps for doing this are:
@@ -28,7 +24,7 @@ All chapters can be built using the data available in this repository.
 - Install R (analysis run with 3.6.0) and Rstudio.
 - Download the folder from <https://github.com/jpadilse/Undergraduate_Thesis/archive/master.zip> or use git clone, as follows, in the command line (not the R terminal).
 
-> `git clone https://github.com/seabbs/thesis.git`
+> `git clone https://github.com/jpadilse/Undergraduate_Thesis.git`
 
 - Once this has been downloaded click on the project file (Undergraduate_Thesis.Rproj).
 
