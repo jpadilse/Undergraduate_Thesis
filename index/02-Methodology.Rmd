@@ -39,7 +39,41 @@ where $G = [I_{q} \quad 0_{q \times (r -q)}]'$.
 Because the factors are unobserved, they are identified only up to arbitrary normalizations. In the principal components normalization ---@baing:2013 refer to this normalization as the PC1 normalization--- the columns of $\Lambda$ are orthogonal and are scaled to have unit norm:
 
 \begin{equation}
-  N^{-1} \Lambda' \Lambda = I_{r}
+  N^{-1} \Lambda' \Lambda = I_{r} (\#eq:normalization)
 \end{equation}
 
 where $\sum_{F} = \E(F_{t}F_{t}')$ is diagonal.
+
+### Estimation of the Factors and DFM Parameters
+
+The parameters and factors of the DFM can be estimated using nonparametric methods related to principal components analysis or by parametric state-space methods.
+
+#### Nonparametric Methods and Principal Components Estimation
+
+Nonparametric methods estimate the static factors in \@ref(eq:common-stack) directly without specifying a model for the factors or assuming specific distributions for the disturbances. These approaches use cross-sectional averaging to remove the influence of the idiosyncratic disturbances, leaving only the variation associated with the factors.
+
+Principal components solve the least-squares problem in which $\Lambda$ and $F_{t}$ in \@ref(eq:common-stack) are treated as unknown parameters to be estimated:
+
+\begin{equation}
+  \min_{F_{1}, \ldots, F_{T}, \Lambda} V_{r}(\Lambda, F), \text{where } V_{r}(\Lambda, F) = \frac{1}{NT} \sum_{t = 1}^{T} (X_{t} - \Lambda F_{t})'(X_{t} - \Lambda F_{t}) (\#eq:pc)
+\end{equation}
+
+subject to the normalization \@ref(eq:normalization). If there are no missing data, then the solution to the least-squares problem in \@ref(eq:pc) is the PC estimator of the factors, $\hat{F}_{t} = N^{-1} \hat{\Lambda}' X_{t}$, where $\hat{\Lambda}$ is the matrix of eigenvectors of the sample variance matrix of $X_{t}$, $\hat{\sum}_{X} = T^{-1} \sum_{t = 1}^{T} X_{t}X_{t}'$, associated with the $r$ largest eigenvalues of $\hat{\sum}_{X}$.
+
+#### Parametric state-space methods
+
+State-space estimation entails specifying a full parametric model for $X_{t}$, $e_{t}$, and $f_{t}$ in the dynamic form of the DFM, so that the likelihood can be computed.
+
+For parametric estimation, additional assumptions need to be made on the distribution of the errors and the dynamics of the idiosyncratic component $e_{t}$ in the DFM. A simple and tractable model is to suppose that the $i$th idiosyncratic disturbance, $e_{t}$, follows the univariate autoregression, 
+
+\begin{equation}
+  e_{it} = \delta_{i} (L) e_{it - 1} + \nu_{it} (\#eq:ar)
+\end{equation}
+
+where $\nu_{it}$ is serially uncorrelated. With the further assumptions that the disturbances $\nu_{it}$ in \@ref(eq:ar) are i.i.d. $\mathcal{N}(o, \sigma_{\nu_{i}}^{2}$), $i = 1, \ldots, N$, $\eta_{t}$ is i.i.d. $\mathcal{N}(0, \sum_{\eta})$, and $\{\nu_{t}\}$ and $\{\eta_{t}\}$ are independent, equations \@ref(eq:common), \@ref(eq:evolve) and \@ref(eq:ar) constitute a complete linear state-space model.
+
+Given the parameters, the Kalman filter can be used to compute the likelihood and the Kalman smoother can be used to compute estimates of $f_{t}$ given the full-sample data on $\{X_{t}\}$. The likelihood can be maximized to obtain maximum likelihood estimates of the parameters. The fact that the state-space approach uses intertemporal smoothing to estimate the factors, whereas principal components approachs use only contemporaneous smoothing (averaging across series at the same date) is an important difference between the methods.
+
+#### Hybrid methods
+
+One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter [@dozgianreic:2011]. In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate $F_{t}$ by the Kalman filter.
