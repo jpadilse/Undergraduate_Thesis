@@ -1,1 +1,45 @@
 # Methodology {#methodology}
+
+## Dynamic factor model
+
+Following @stocwats:2016, the DFM represents the evolution of a vector of $N$ observed time series, $X_{t}$, in terms of a reduced number of unobserved common factors which evolve over time, plus uncorrelated disturbances which represent measurement error and/or idiosyncratic dynamics of the individual series. Throughout this chpater, we use lag operator, so that $a(L) = \sum_{i = 0}^{\infty} a_{i}L^{i}$, where $L$ is the lag operator, and $a(L)X_{t} = \sum_{i = 0}^{\infty} a_{i}X_{t - i}$.
+
+One form of write the model is its dynamic form which represents the dependence of $X_{t}$ on lags of the factors explicitly.
+
+### Dynamic form of the DFM
+
+The DFM expresses a $N \times 1$ vector $X_{t}$ of observed time series variables as depending on a reduced number $q$ of unobserved or latent factors $f_{t}$ and a mean-zero idiosyncratic component $e_{t}$. The DFM is,
+
+\begin{eqnarray}
+  X_{t} & = & \lambda (L) f_{t} + e_{t} (\#eq:common)
+  \\
+  f_{t} & = & \Psi (L) f_{t} + \eta_{t} (\#eq:evolve)
+\end{eqnarray}
+
+where tha lag polynomial matrices $\lambda(L)$ and $\Psi(L)$ are $N \times q$ and $q \times q$, respectively, and $\eta_{t}$ is the $q \times 1$ vector of (serially uncorrelated) mean-zero innovations to the factors. The idiosyncratic disturbances are assumed to be uncorrelated with the factor innovations at all leads and lags, that is, $\E(e_{t}\eta_{t - k}') = 0$ for all $k$. The $i$th row of $\lambda(L)$, the lag polynomial $\lambda_{i}(L)$, is called the dynamic factor loading for the $i$th series, $X_{it}$. The term $\lambda_{i}(L)f_{t}$ in \@ref(eq:common) is the *common component* of the $i$th series.
+
+If the idiosyncratic disturbance $e_{t}$ in \@ref(eq:common) is serially correlated the models \@ref(eq:common) and \@ref(eq:evolve) are incompletely specified. @chamroth:1983 *aproximate factor model* allows for such correlation.
+
+### Static (stacked) form of the DFM
+
+The *static*, or *stacked*, form of the DFM rewrites the dynamic form \@ref(eq:common) and \@ref(eq:evolve) to depend on $r$ *static factors* $F_{t}$ instead of the $q$ dynamic factors $f_{t}$, where $r \geq q$. This rewriting makes the model amenable to principal component analysis.
+
+Let $p$ be the degree of the lag polynomial matrix $\lambda(L)$ and let $F_{t} = (f_{t}', f_{t - 1}', \ldots, f_{t - p}')'$ denote an $r \times 1$ vector of so-called "static" factors ---in contrast to the "dynamic" factors $f_{t}$. Also let $\Lambda = c(\lambda_{0}, \lambda_{1}, \ldots, \lambda_{p})$, where $\lambda_{h}$ is the $N \times q$ matrix of coefficients on the $h$th lag in $\lambda(L)$. Similarly, let $\Phi(L)$ be the matrix consisting of $1$s, $0$s, and the elements of $\Psi(L)$ such that the vector autoregression in \@ref(eq:common) is rewritten in terms of $F_{t}$. With this notation the DFM \@ref(eq:common) and \@ref(eq:evolve) can be rewritten, 
+
+\begin{eqnarray}
+  X_{t} & = & \Lambda F_{t} + e_{t} (\#eq:common-stack)
+  \\
+  F_{t} & = & \Phi(L) F_{t - 1} + G \eta_{t} (\#eq:evolve-stack) 
+\end{eqnarray}
+
+where $G = [I_{q} \quad 0_{q \times (r -q)}]'$.
+
+### Normalization of the factors
+
+Because the factors are unobserved, they are identified only up to arbitrary normalizations. In the principal components normalization ---@baing:2013 refer to this normalization as the PC1 normalization--- the columns of $\Lambda$ are orthogonal and are scaled to have unit norm:
+
+\begin{equation}
+  N^{-1} \Lambda' \Lambda = I_{r}
+\end{equation}
+
+where $\sum_{F} = \E(F_{t}F_{t}')$ is diagonal.
