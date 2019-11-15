@@ -16,7 +16,7 @@ The DFM expresses a $N \times 1$ vector $X_{t}$ of observed time series variable
   f_{t} & = & \Psi (L) f_{t} + \eta_{t} (\#eq:evolve)
 \end{eqnarray}
 
-where tha lag polynomial matrices $\lambda(L)$ and $\Psi(L)$ are $N \times q$ and $q \times q$, respectively, and $\eta_{t}$ is the $q \times 1$ vector of (serially uncorrelated) mean-zero innovations to the factors. The idiosyncratic disturbances are assumed to be uncorrelated with the factor innovations at all leads and lags, that is, $\E(e_{t}\eta_{t - k}') = 0$ for all $k$. The $i$th row of $\lambda(L)$, the lag polynomial $\lambda_{i}(L)$, is called the dynamic factor loading for the $i$th series, $X_{it}$. The term $\lambda_{i}(L)f_{t}$ in \@ref(eq:common) is the *common component* of the $i$th series.
+where tha lag polynomial matrices $\lambda(L)$ and $\Psi(L)$ are $N \times q$ and $q \times q$, respectively, and $\eta_{t}$ is the $q \times 1$ vector of (serially uncorrelated) mean-zero innovations to the factors. The idiosyncratic disturbances are assumed to be uncorrelated with the factor innovations at all leads and lags, that is, $\mathbb{E}(e_{t}\eta_{t - k}') = 0$ for all $k$. The $i$th row of $\lambda(L)$, the lag polynomial $\lambda_{i}(L)$, is called the dynamic factor loading for the $i$th series, $X_{it}$. The term $\lambda_{i}(L)f_{t}$ in \@ref(eq:common) is the *common component* of the $i$th series.
 
 If the idiosyncratic disturbance $e_{t}$ in \@ref(eq:common) is serially correlated the models \@ref(eq:common) and \@ref(eq:evolve) are incompletely specified. @chamroth:1983 *aproximate factor model* allows for such correlation.
 
@@ -42,7 +42,7 @@ Because the factors are unobserved, they are identified only up to arbitrary nor
   N^{-1} \Lambda' \Lambda = I_{r} (\#eq:normalization)
 \end{equation}
 
-where $\sum_{F} = \E(F_{t}F_{t}')$ is diagonal.
+where $\sum_{F} = \mathbb{E}(F_{t}F_{t}')$ is diagonal.
 
 ### Estimation of the Factors and DFM Parameters
 
