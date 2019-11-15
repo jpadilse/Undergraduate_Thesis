@@ -13,11 +13,17 @@
 - @leebpots:2005
 - @leebpots:2006
 
-## DFM
+## Indexes
 
-### Estimation
-
-- @stocwats:2016
+- @stocwats:1991
+- @stocwats:1993
+- @cronclay:2005
+- @marimura:2003
+- @aruodiebscot:2009
+- @stocwats:1999
+- @altibasscrisfornhalllippreicvero:2001
+- @alticrisfornlippvero:2010
+- @stocwats:1990
 
 ### Number of factors
 
@@ -31,17 +37,6 @@
 ## Index
 
 - @chulguilurib:2017
-
-## Fan chart
-
-- @britfishwhit:1998
-- @clements:2004
-
-## Nowcasting
-
-- @gianreicsmal:2008
-- @banbruns:2011
-- @banbgianreic:2011
 
 ## Trends
 
