@@ -16,6 +16,8 @@ bibliography: [bib/thesis.bib, bib/packages.bib]
 csl: csl/apa.csl
 lot: true
 lof: true
+header-includes:
+  - \DeclareMathOperator{\E}{E}
 ---
 
 ```{r setup, include = FALSE}
