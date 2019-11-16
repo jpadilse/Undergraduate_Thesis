@@ -16,8 +16,6 @@ bibliography: [bib/thesis.bib, bib/packages.bib]
 csl: csl/apa.csl
 lot: true
 lof: true
-header-includes:
-  - \DeclareMathOperator{\E}{E}
 ---
 
 ```{r setup, include = FALSE}
@@ -42,8 +40,10 @@ library(pacman)
 p_load(dynfactoR)
 p_load(forcats)
 p_load(ggthemes)
-p_load(ggts)
+p_load_gh(ggts)
 p_load(here)
+p_load(kableExtra)
+p_load(knitr)
 p_load(magrittr)
 p_load(psych)
 p_load(readr)
