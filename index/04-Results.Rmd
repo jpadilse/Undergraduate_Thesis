@@ -820,7 +820,7 @@ Forecast_error_data <- map_dfr(
 (ref:RMSFE-non-asset-market) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
 
 ```{r}
-Forecast_error_data %<>%
+Forecast_error_data_org %<>%
     rename(
       Production = Production_NAICS_log_cycle,
       Employment = Employment_manu_lin_cycle,
@@ -829,7 +829,7 @@ Forecast_error_data %<>%
       Wages = Wages_manu_log_cycle,
       `Federal Funds rate` = FederalFundsRate_lin_cycle,
       `Stock market index` = StockMarketIndex_log_cycle,
-      `Uncertainty index (NAM)` = NAM
+      `Uncertainty index (NAM)` = MU_JLN_h1
     ) %>%
   mutate(`Forecast Horizont` = factor(c(paste0(forecast_horizont, " months")))) %>%
   select(`Forecast Horizont`, everything()) %>%
