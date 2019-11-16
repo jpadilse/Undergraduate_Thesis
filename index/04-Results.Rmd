@@ -1,6 +1,6 @@
 # Results {#results}
 
-In this chapter I present the new uncertainty index in [Non-Asset-Market Index]; I compare it with some of the main uncertainty indicators in [Correlation with Uncertainty Indicators]; I analyze the relationship between me proposal and some real and financial variables in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]; and, I perform several robustness exercises in [Robustness].
+In this chapter I present the new uncertainty index in [Non-Asset-Market Index]; I compare it with some of the main uncertainty indicators in [Correlation with Uncertainty Indicators]; I analyze the relationship between me proposal and some real and financial variables in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]; I evaluate the forecasting capacity of use the non-asset-market index in contrast with traditional uncertainty indexes in [Forecasting]; and, I perform several robustness exercises in [Robustness].
 
 ## Non-Asset-Market Index {#non-asset-market-index}
 
@@ -22,22 +22,12 @@ uncertainty_indexes <- list(
 ```
 
 ```{r dynamic_factors, include = FALSE}
-chosen_indexes <- c(
-  "EPUNews", 
-  "MPU_BBD_AWN", 
-  "MPU_BBD_10", 
-  "MPU_HRS", 
-  "GPR",
-  "MU_JLN_h1"
-)
-
 dynamic_factors <- dfm(
-  uncertainty_indexes %>% 
-    select(!!!chosen_indexes), #%>% 
-    #mutate_all(~scale(.)), 
-  r = 1, 
-  q = 1, 
-  p = 1
+  uncertainty_indexes[-1] %>% 
+    mutate_all(~ scale(.)),
+  , r = 1
+  , q = 1
+  , p = 1
 )
 
 write_rds(
@@ -50,33 +40,19 @@ DFM_base <- tibble(
   PCA = dynamic_factors[["pca"]][, 1],
   `Two-step` = dynamic_factors[["twostep"]][, 1],
   QML = dynamic_factors[["qml"]][, 1],
-  NAM = QML
+  NAM = (QML - max(QML)) / (QML[1] - max(QML)) * 100
 )
-```
-
-(ref:non-asset-market-index) **Non-Asset-Market-Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
-
-```{r non-asset-market-index, fig.cap = "(ref:non-asset-market-index)", fig.scap = "Non-Asset-Market-Index", out.extra = ""}
-DFM_base %>% 
-  ggplot(aes(Date, NAM)) + 
-    geom_cycle(fill = "grey50") +
-    geom_hline(yintercept = quantile(DFM_base[["NAM"]], 0.95), size = 0.125) +
-    geom_line() +
-    scale_x_date(date_breaks = "5 year", date_labels = "%Y") +
-    #scale_y_continuous(limits = c(0, 300)) +
-    labs(
-      caption = "Source: Own calculations",
-      x = "",
-      y = ""
-    )
 ```
 
 ```{r DescribeIndex}
 DescribeIndex <- function(x) {
-  skew <- skewness(x)
-  kurt <- kurtosis(x) 
+  m <- mean(x)
+  n <- length(x)
+  s <- sd(x)
+  skew <- sum((x - m)^3 / s^3) / n
+  kurt <- sum((x - m)^4 / s^4) / n - 3
   AR <- lm(x ~ dplyr::lag(x))[["coefficients"]][2]
-  HL <- (log(0.5) / log(abs(AR)))
+  HL <- log(0.5) / log(abs(AR))
   c(skew, kurt, AR, HL)
 }
 ```
@@ -99,12 +75,32 @@ coef(date_QLR, breaks = 1)
 
 ```{r Residuals_break, eval = FALSE}
 Residuals_break <- DFM_base %>% 
-  mutate(Break = ifelse(Date > ymd("2007-07-31"), 1, 0)) %>% 
+  mutate(Break = ifelse(Date > ymd("2008-11-30"), 1, 0)) %>% 
   lm(NAM ~ Break, data = .) %>% 
   residuals()
 
 DFM_base %<>% mutate(NAM = Residuals_break)
 ```
+
+(ref:non-asset-market-index) **Non-Asset-Market-Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
+
+```{r non-asset-market-index, fig.cap = "(ref:non-asset-market-index)", fig.scap = "Non-Asset-Market-Index"}
+DFM_base %>% 
+  ggplot(aes(Date, NAM)) + 
+    geom_cycle(fill = "grey50") +
+    geom_hline(yintercept = quantile(DFM_base[["NAM"]], 0.95), size = 0.125) +
+    geom_line() +
+    #ggrepel::geom_label_repel() +
+    scale_x_date(date_breaks = "3 year", date_labels = "%Y") +
+    scale_y_continuous(limits = c(-100, 600)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "",
+      y = ""
+    )
+```
+
+
 
 I estimate the DFM using one static and dynamic factor, because I am looking for the underlying structure behind uncertainty. The monthly non-asset-market uncertainty index is presented in Figure \@ref(fig:non-asset-market-index), together with the recession dates in the United States, as indicated by the NBER on its web site. The index peaks coincide with well-documented episodes of uncertainty in the financial markets and the real economy, including the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009. That is to say, recession dates clearly correlate with the amount of uncertainty in the market and them are followed by a notable uncertainty shock.
 
@@ -113,7 +109,7 @@ In Table \@ref(tab:summary-table) I report descriptive statistics for the non-as
 ```{r summary-table-raw}
 summary_table_raw <- tibble(
   Statistic = c(
-    "Skewness", "Kurtosis", "Persistence, AR(1)", "Half-life (months)"
+    "Skewness", "Excess Kurtosis", "Persistence, AR(1)", "Half-life (months)"
   ),
   `1985:M1--2017:M7` = DescribeIndex(
     DFM_base[["NAM"]]
@@ -129,27 +125,28 @@ summary_table_raw <- tibble(
 
 Table \@ref(tab:summary-table) shows that using the full sample to calculate persistence can lead to a spurious estimation of the summary statistics. Indeed, the sample distribution of the uncertainty index in the two sub-samples looks quite distinct. In the first part of the sample, persistence is greater (`r comma(summary_table_raw[3, 2, drop = TRUE])`) and the distribution that characterizes them tends to generate a higher number of *outliers* (kurtosis equal to `r comma(summary_table_raw[2, 3, drop = TRUE])`) and they are more likely to be above than below the mean (`r comma(summary_table_raw[1, 3, drop = TRUE])` is the asymmetric coefficient). In contrast, in the second part of the sample the persistence is smaller (`r comma(summary_table_raw[3, 4, drop = TRUE])`) and there are fewer observations distant from the mean (kurtosis equal to `r comma(summary_table_raw[2, 4, drop = TRUE])`) and, lastly, the distribution presents a slightly asymmetric behavior (skewness equal to `r comma(summary_table_raw[1, 4, drop = TRUE])`). This behavior may be interpreted as uncertainty showing some degree of inconsistency across time, which is related to the knightian framework, in which uncertainty is indeed understood as a non-predictable state.
 
-(ref:summary-table) **Summary Statistics of Non-Asset-Market Index**: The table reports the first-order autocorrelation coefficient and estimates of skewness and kurtosis. 
+(ref:summary-table) **Summary tatistics of non-asset-market uncertainty index in two sub-samples**: The table reports estimates of skewness and kurtosis, the first-order autocorrelation coefficient and the half-life of an aggregate uncertainty innovation from a univariate autoregression (AR).
 
 ```{r summary-table, results = "asis"}
-knitr::kable(
+kable(
   summary_table_raw
   , digits = 2,
   , align = c("l", "c", "c", "c")
   , caption = "(ref:summary-table)"
-  , caption.short = "Summary Statistics of Non-Asset-Market Index"
+  , caption.short = "Summary statistics of non-asset-market uncertainty index in two sub-samples"
   , booktabs = TRUE
-)
+) %>% 
+  add_header_above(c("", "Sample period" = 3))
 ```
 
 ```{r scree_plot_values, include = FALSE}
 scree_plot <- fa.parallel(
-  uncertainty_indexes %>% 
-    select(!!!chosen_indexes) %>% 
-    mutate_all(~scale(.)),
+  uncertainty_indexes[-1] %>% 
+    mutate_all(~ scale(.)),
   fa = "pc",
   n.iter = 1000,
-  plot = FALSE
+  plot = FALSE, 
+  quant = 0.99
 )
 ```
 
@@ -170,9 +167,9 @@ The figure \@ref(fig:scree-plot) displays the scree test based on the observed e
 
 ```{r scree-plot, fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot", out.extra = ""}
 tibble(
-  Component_Number = factor(seq_along(chosen_indexes)), 
-  Real = scree_plot[["pc.values"]] / length(chosen_indexes), 
-  Sim = scree_plot[["pc.sim"]] / length(chosen_indexes),
+  Component_Number = factor(1:length(uncertainty_indexes[-1])), 
+  Real = scree_plot[["pc.values"]] / length(uncertainty_indexes[-1]), 
+  Sim = scree_plot[["pc.sim"]] / length(uncertainty_indexes[-1]),
   Parallel = ifelse(Real > Sim, "greater", "less")
 ) %>% 
   ggplot(aes(Component_Number, Real, fill = Parallel)) +
@@ -399,9 +396,8 @@ VAR_medium_lag <- VARselect(
 ```{r VAR_medium}
 VAR_medium <- VAR(
   VAR_data %>% select(!!!chosen_variables_eight),
-  p = 3
-  #lag.max = 24,
-  #ic = "AIC"
+  lag.max = 24,
+  ic = "AIC"
 )
 ```
 
@@ -614,9 +610,9 @@ fevd_medium_R %>%
 ```{r VAR_trivariate_lag}
 VAR_trivariate_lag <- VARselect(
   VAR_data %>% select(
-    "Production_NAICS_log_cycle",
-    "Employment_manu_lin_cycle",
-    "NAM"
+    Production_NAICS_log_cycle,
+    Employment_manu_lin_cycle,
+    NAM
   ),
   lag.max = 24
 )
@@ -625,9 +621,9 @@ VAR_trivariate_lag <- VARselect(
 ```{r VAR_trivariate}
 VAR_trivariate <- VAR(
   VAR_data %>% select(
-    "Production_NAICS_log_cycle",
-    "Employment_manu_lin_cycle",
-    "NAM"
+    Production_NAICS_log_cycle,
+    Employment_manu_lin_cycle,
+    NAM
   ),
   lag.max = 24,
   ic = "AIC"
@@ -713,7 +709,7 @@ tibble(
     geom_hline(aes(yintercept = 0), size = 0.125) +
     geom_line(aes(colour = VAR, linetype = VAR)) +
     scale_x_continuous(breaks = seq(0, 60, by = 5)) +
-    scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) +
+    #scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) +
     scale_color_viridis_d() +
     labs(
       caption = "Source: Own calculations",
@@ -725,7 +721,7 @@ tibble(
     theme(legend.position = "bottom")
 ```
 
-## Forecasting
+## Forecasting {#forecasting}
 
 ```{r EndOfSample}
 # End of sample dates
@@ -735,7 +731,7 @@ EndOfSample <- VAR_data %>%
 ```
 
 ```{r forecast_horizont}
-forecast_horizont <- list(3, 6, 9)
+forecast_horizont <- list(3, 6, 9, 12, 15, 18, 21, 24)
 ```
 
 ```{r chosen_variables_forecast}
@@ -823,9 +819,8 @@ Forecast_error_data <- map_dfr(
 
 (ref:RMSFE-non-asset-market) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
 
-```{r RMSFE-non-asset-market, results = "asis"}
-knitr::kable(
-  Forecast_error_data %>%
+```{r}
+Forecast_error_data %<>%
     rename(
       Production = Production_NAICS_log_cycle,
       Employment = Employment_manu_lin_cycle,
@@ -836,22 +831,30 @@ knitr::kable(
       `Stock market index` = StockMarketIndex_log_cycle,
       `Uncertainty index (NAM)` = NAM
     ) %>%
-    mutate(`Forecast Horizont` = c(paste0(forecast_horizont, " months"))) %>%
-    select(`Forecast Horizont`, everything()) %>%
-    gather(
+  mutate(`Forecast Horizont` = factor(c(paste0(forecast_horizont, " months")))) %>%
+  select(`Forecast Horizont`, everything()) %>%
+  gather(
       -`Forecast Horizont`,
       key = "Variable",
       value = "Temporal",
       factor_key = TRUE
-    ) %>%
-    spread(key = `Forecast Horizont`, value = "Temporal")
+  ) %>%
+  spread(key = `Forecast Horizont`, value = "Temporal")
+```
+
+
+```{r RMSFE-non-asset-market, results = "asis"}
+kable(
+  Forecast_error_data
   , digits = 2,
-  , align = c("l", rep("c", 3))
+  , align = c("l", rep("c", 8))
   , caption = "(ref:RMSFE-non-asset-market)"
   , caption.short = "Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts"
   , booktabs = TRUE
   , linesep = ""
-)
+) %>% 
+  add_header_above(c("", "Non-asset-market uncertainty" = 8)) %>% 
+  landscape()
 ```
 
 
