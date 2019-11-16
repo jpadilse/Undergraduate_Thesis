@@ -247,15 +247,15 @@ irf_baseline <- irf(
 ```{r irf_baseline_matrix}
 matrix_response <- as_tibble(irf_baseline[["irf"]][["NAM"]]) %>%
   mutate(Months = row_number()) %>%
-  pivot_longer(-Months, names_to = "Variable", values_to = "Response")
+  gather(-Months, key = "Variable", value = "Response")
 
 matrix_lower <- as_tibble(irf_baseline[["Lower"]][["NAM"]]) %>%
   mutate(Months = row_number()) %>%
-  pivot_longer(-Months, names_to = "Variable", values_to = "Lower")
+  gather(-Months, key = "Variable", value = "Lower")
 
 matrix_upper <- as_tibble(irf_baseline[["Upper"]][["NAM"]]) %>%
   mutate(Months = row_number()) %>%
-  pivot_longer(-Months, names_to = "Variable", values_to = "Upper")
+  gather(-Months, key = "Variable", value = "Upper")
 
 matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
   reduce(inner_join, by  = c("Variable", "Months")) %>%
