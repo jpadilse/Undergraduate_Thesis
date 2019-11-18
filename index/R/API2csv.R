@@ -102,7 +102,7 @@ FRED_data %<>%
     Employment_all_lin = PAYEMS,
     Employment_manu_lin = MANEMP,
     Consumption_log = 100 * log(DPCERA3M086SBEA),
-    Inflation = 12 * 100 * log(PCEPI / lag(PCEPI)),
+    Inflation_production = 12 * 100 * log(PCEPI / lag(PCEPI)),
     Inflation_urban = 12 * 100 * log(CPIAUCSL / lag(CPIAUCSL)),
     Wages_all_log = 100 * log(AHETPI),
     Wages_manu_log = 100 * log(CES3000000008),
@@ -151,7 +151,7 @@ USA_Data <- list(FRED_data, ISM, SP500) %>%
     Employment_all_lin,
     Employment_manu_lin,
     Consumption_log,
-    Inflation,
+    Inflation_production,
     Inflation_urban,
     NewOrders_log,
     Wages_all_log,
@@ -189,14 +189,14 @@ USA_Data %<>%
 
 # Rename all variables for labels of tables and plots ---------------------
 
-USA_Data %>%
+USA_Data %<>%
   rename(
     Production = Production_all_log_cycle,
     `Production (manufacturing)` = Production_NAICS_log_cycle,
     Employment = Employment_all_lin_cycle,
     `Employment (manufacturing)` = Employment_manu_lin_cycle,
     Consumption = Consumption_log_cycle,
-    Inflation = Inflation_cycle,
+    Inflation = Inflation_production_cycle,
     `Inflation (urban)` = Inflation_urban_cycle,
     `New Orders` = NewOrders_log_cycle,
     Wages = Wages_all_log_cycle,
