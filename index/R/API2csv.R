@@ -5,11 +5,20 @@ if (!require(pacman)) install.packages("pacman")
 library(pacman)
 
 p_load(dplyr)
+p_load(here)
 p_load(magrittr)
+p_load(neverhpfilter)
 p_load(purrr)
+p_load(readr)
 p_load(stringr)
 p_load(tidyr)
 p_load(tidyquant)
+p_load(timetk)
+
+# Declare preferences -----------------------------------------------------
+
+conflicted::conflict_prefer("here", "here")
+conflicted::conflict_prefer("lag", "dplyr")
 
 # Import series through FED, Yahoo Finance and Quandl API -----------------
 
@@ -159,8 +168,8 @@ USA_Data <- list(FRED_data, ISM, SP500) %>%
 USA_Data_detrend <- do.call(
   merge,
   map(
-    as.list(timetk::tk_xts(USA_Data)),
-    neverhpfilter::yth_filter,
+    as.list(tk_xts(USA_Data)),
+    yth_filter,
     h = 24,
     p = 12,
     output = "cycle"
@@ -168,7 +177,7 @@ USA_Data_detrend <- do.call(
 )
 
 USA_Data_detrend %<>%
-  timetk::tk_tbl() %>%
+  tk_tbl() %>%
   rename(Date = index)
 
 # Merge raw and cycle series ----------------------------------------------
@@ -177,6 +186,28 @@ USA_Data %<>%
   inner_join(USA_Data_detrend) %>%
   rename_all(~ str_replace(., "\\.", "_"))
 
+
+# Rename all variables for labels of tables and plots ---------------------
+
+USA_Data %>%
+  rename(
+    Production = Production_all_log_cycle,
+    `Production (manufacturing)` = Production_NAICS_log_cycle,
+    Employment = Employment_all_lin_cycle,
+    `Employment (manufacturing)` = Employment_manu_lin_cycle,
+    Consumption = Consumption_log_cycle,
+    Inflation = Inflation_cycle,
+    `Inflation (urban)` = Inflation_urban_cycle,
+    `New Orders` = NewOrders_log_cycle,
+    Wages = Wages_all_log_cycle,
+    `Wages (manufacturing)` = Wages_manu_log_cycle,
+    Labor = Labor_all_lin_cycle,
+    `Labor (manufacturing)` = Labor_manu_lin_cycle,
+    `Federal funds rate` = FederalFundsRate_lin_cycle,
+    `Stock market index` = StockMarketIndex_log_cycle,
+    `M2 growth rate` = M2_cca_cycle
+  )
+
 # Write data to csv -------------------------------------------------------
 
-readr::write_csv(USA_Data, "./Data/Input/USA-data.csv")
+write_csv(USA_Data, here("index", "Data", "Input", "USA-data.csv"))
