@@ -144,7 +144,7 @@ scree_plot <- fa.parallel(
   uncertainty_indexes[-1] %>% 
     mutate_all(~ scale(.)),
   fa = "pc",
-  n.iter = 1000,
+  n.iter = 100,
   plot = FALSE, 
   quant = 0.99
 )
@@ -229,8 +229,7 @@ VAR_baseline_lag <- VARselect(
 ```{r VAR_baseline}
 VAR_baseline <- VAR(
   VAR_data %>% select(!!!chosen_variables),
-  lag.max = 12,
-  ic = "AIC"
+  p = 12
 )
 ```
 
@@ -240,7 +239,7 @@ irf_baseline <- irf(
   impulse = "NAM",
   n.ahead = 60,
   runs = 100,
-  ci = 0.95
+  ci = 0.86
 )
 ```
 
@@ -275,7 +274,7 @@ matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
   )
 ```
 
-(ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
 ```{r irf-baseline-plot, fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics under Uncertainty", out.extra = ""}
 matrix_irf %>%
@@ -313,17 +312,17 @@ fevd_baseline <- fevd(VAR_baseline, 60)
 ```
 
 ```{r fevd_medium_production}
-fevd_medium_production <- as_tibble(
-  fevd_medium[["Production_NAICS_log_cycle"]]
+fevd_baseline_production <- as_tibble(
+  fevd_baseline[["Production_all_log_cycle"]]
 )
 
-fevd_medium_production %<>%
+fevd_baseline_production %<>%
   rename(
-    Production = Production_NAICS_log_cycle,
-    Employment = Employment_manu_lin_cycle,
-    Prices = Inflation_urban_cycle,
-    Wages = Wages_manu_log_cycle,
-    Labor = Labor_manu_lin_cycle,
+    Production = Production_all_log_cycle,
+    Employment = Employment_all_lin_cycle,
+    Prices = Inflation_cycle,
+    Wages = Wages_all_log_cycle,
+    Labor = Labor_all_lin_cycle,
     `Federal funds rate` = FederalFundsRate_lin_cycle,
     `Stock market index` = StockMarketIndex_log_cycle,
     Uncertainty = NAM
@@ -335,17 +334,17 @@ fevd_medium_production %<>%
 ```
 
 ```{r fevd_medium_R}
-fevd_medium_R <- as_tibble(
-  fevd_medium[["FederalFundsRate_lin_cycle"]]
+fevd_baseline_R <- as_tibble(
+  fevd_baseline[["FederalFundsRate_lin_cycle"]]
 )
 
-fevd_medium_R %<>%
+fevd_baseline_R %<>%
   rename(
-    Production = Production_NAICS_log_cycle,
-    Employment = Employment_manu_lin_cycle,
-    Prices = Inflation_urban_cycle,
-    Wages = Wages_manu_log_cycle,
-    Labor = Labor_manu_lin_cycle,
+    Production = Production_all_log_cycle,
+    Employment = Employment_all_lin_cycle,
+    Prices = Inflation_cycle,
+    Wages = Wages_all_log_cycle,
+    Labor = Labor_all_lin_cycle,
     `Federal funds rate` = FederalFundsRate_lin_cycle,
     `Stock market index` = StockMarketIndex_log_cycle,
     Uncertainty = NAM
@@ -359,7 +358,7 @@ fevd_medium_R %<>%
 (ref:fevd-medium-production) **Forecast error variance decomposition for production**: The Figure shows fractions of the forecast error variance due to production shocks for the eight variables. The sample period is January 1985 to July 2017.
 
 ```{r fevd-medium-production-plot, fig.cap = "(ref:fevd-medium-production)", fig.scap = "Forecast error variance decomposition for production", out.extra = ""}
-fevd_medium_production %>%
+fevd_baseline_production %>%
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) +
@@ -376,7 +375,7 @@ fevd_medium_production %>%
 (ref:fevd-medium-R-plot) **Forecast error variance decomposition for federal funds rate**: The Figure shows fractions of the forecast error variance due to federal funds rate shocks for the eight variables. The sample period is January 1985 to July 2017.
 
 ```{r fevd-medium-R-plot, fig.cap = "(ref:fevd-medium-R-plot)", fig.scap = "Forecast error variance decomposition for federal funds rate", out.extra = ""}
-fevd_medium_R %>%
+fevd_baseline_R %>%
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.10), labels = percent) +
@@ -431,303 +430,6 @@ knitr::kable(
   , booktabs = TRUE
   , linesep = ""
 )
-```
-
-## Robustness {#robustness}
-
-(ref:robustness-methods) **Robustness to estimation method**: The figure shows the comparation between the non-asset-market uncertainty index using quasi-maximum likelihood, principal component and two-step. All the indexes have been standardized to make proper comparisons.
-
-```{r robustness-methods, fig.cap = "(ref:robustness-methods)", fig.scap = "Robustness to estimation method"}
-DFM_base %>% 
-  mutate(
-    PCA = (PCA - max(PCA)) / (PCA[1] - max(PCA)) * 100,
-    `Two-step` = (
-      (`Two-step` - max(`Two-step`)) / (`Two-step`[1] - max(`Two-step`)) * 100
-    ),
-    QML = (QML - max(QML)) / (QML[1] - max(QML)) * 100
-  ) %>% 
-  gather(PCA:QML, key = "Method", value = "Index") %>% 
-  ggplot(aes(Date, Index)) +
-    geom_cycle(fill = "grey50") +
-    geom_line(aes(colour = Method)) +
-    scale_x_date(date_breaks = "3 year", date_labels = "%Y") +
-    scale_y_continuous(limits = c(-100, 600)) +
-    scale_colour_viridis_d(option = "inferno") +
-    labs(
-      caption = "Source: Own calculations",
-      x = "",
-      y = ""
-    )
-```
-
-I perform several robustness exercises varying the econometric methodology employed to create the non-asset-market uncertainty index. I estimate the uncertainty index using PCA and PCA estimates runs through Kalman ﬁlter ---two-step--- instead of quasi-maximum likelihood. The results are summarized in Figure \@ref(fig:robustness-methods). In general, the uncertainty index behaves in a very similar fashion, regardless of the factor methodology used to summarize the components of the series.
-
-In the same way I employ different variable sets and orderings of the VAR estimated in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]. First, I change the sector of the variables to the manufacturing sector with eight variables following @bloom:2009. The set the variables in the estimation are industrial production in manufacturing, employment in manufacturing, average hours in manufacturing, consumer price index, average hourly earnings for production workers in manufacturing, federal funds rate, stock-market index and non-asset-market uncertainty.
-
-To identify uncertainty shocks, a Cholesky ordering is used with production ordered first, followed by employment, labor, prices, wages, federal funds rate, stock market index and non-market uncertainty ordered last. The ordering is based on the assumptions that shocks instantaneously influence the stock market, then prices (wages, the consumer price index (CPI), and interest rates), and finally quantities (hours, employment, and output).
-
-Henceforth, Figures \@ref(fig:production-medium) and \@ref(fig:employment-medium) confirm the robustness of these VAR results to a range of alternative approaches over variable ordering and variable inclusion.
-
-```{r chosen_variables_eight}
-chosen_variables_eight <- c(
-  "Production_NAICS_log_cycle",
-  "Employment_manu_lin_cycle",
-  "Inflation_urban_cycle",
-  "Wages_manu_log_cycle",
-  "Labor_manu_lin_cycle",
-  "FederalFundsRate_lin_cycle",
-  "StockMarketIndex_log_cycle",
-  "NAM"
-)
-```
-
-```{r var_medium_lag}
-VAR_medium_lag <- VARselect(
-  VAR_data %>% select(!!!chosen_variables_eight),
-  lag.max = 24
-)
-```
-
-```{r VAR_medium}
-VAR_medium <- VAR(
-  VAR_data %>% select(!!!chosen_variables_eight),
-  lag.max = 24,
-  ic = "AIC"
-)
-```
-
-```{r irf_medium_production, warning = FALSE}
-irf_medium_production <- irf(
-  VAR_medium,
-  impulse = c("NAM", "StockMarketIndex_log_cycle"),
-  response = "Production_NAICS_log_cycle",
-  n.ahead = 60,
-  runs = 100,
-  ci = 0.95
-)
-```
-
-```{r irf_medium_production_matrix}
-irf_medium_production_matrix <- tibble(
-  Months = 0:60,
-  `Response to a uncertainty shock` = as.vector(
-    irf_medium_production[["irf"]][["NAM"]]
-  ),
-  NAM_lower = as.vector(irf_medium_production[["Lower"]][["NAM"]]),
-  NAM_upper = as.vector(irf_medium_production[["Upper"]][["NAM"]]),
-  `Response to a stock market shock` = -as.vector(
-    irf_medium_production[["irf"]][["StockMarketIndex_log_cycle"]]
-  )
-) %>%
-  gather(
-    `Response to a uncertainty shock`,
-    `Response to a stock market shock`,
-    key = "Imp",
-    value = "Res"
-  )
-```
-
-(ref:production-medium) **Decline of production under uncertainty**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market (model with 3 lags, selected by the Akaike Information Criterion), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
-
-```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of production under uncertainty", out.extra = ""}
-irf_medium_production_matrix %>%
-  ggplot(aes(Months, Res)) +
-    geom_hline(aes(yintercept = 0), size = 0.125) +
-    geom_ribbon(
-      data = irf_medium_production_matrix %>% 
-        filter(Imp == "Response to a uncertainty shock"),
-      aes(ymin = NAM_lower, ymax = NAM_upper),
-      fill = "steelblue",
-      alpha = 0.125
-    ) +
-    geom_line(aes(colour = Imp, linetype = Imp)) +
-    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
-    scale_y_continuous(breaks = seq(0.20, -0.60, by = -0.05)) +
-    scale_color_manual(values = c(viridis(1), "steelblue")) +
-    scale_linetype_manual(values = c("dotdash", "dashed")) +
-    labs(
-      caption = "Source: Own calculations",
-      x = "Months after the shock",
-      y = "% impact on production",
-      colour = "",
-      linetype = ""
-    ) +
-    theme(legend.position = "bottom")
-```
-
-```{r irf_medium_employment, warning = FALSE}
-irf_medium_employment <- irf(
-  VAR_medium,
-  impulse = c("NAM", "StockMarketIndex_log_cycle"),
-  response = "Employment_manu_lin_cycle",
-  n.ahead = 60,
-  runs = 100,
-  ci = 0.95
-)
-```
-
-```{r irf_medium_employment_matrix}
-irf_medium_employment_matrix <- tibble(
-  Months = 0:60,
-  `Response to a uncertainty shock` = as.vector(
-    irf_medium_employment[["irf"]][["NAM"]]
-  ),
-  NAM_lower = as.vector(irf_medium_employment[["Lower"]][["NAM"]]),
-  NAM_upper = as.vector(irf_medium_employment[["Upper"]][["NAM"]]),
-  `Response to a stock market shock` = -as.vector(
-    irf_medium_employment[["irf"]][["StockMarketIndex_log_cycle"]]
-  )
-) %>%
-  gather(
-    `Response to a uncertainty shock`,
-    `Response to a stock market shock`,
-    key = "Imp",
-    value = "Res"
-  )
-```
-
-(ref:employment-medium) **Decline of employment under uncertainty**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
-
-```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of employment under uncertainty", out.extra = ""}
-irf_medium_employment_matrix %>%
-  ggplot(aes(Months, Res)) +
-    geom_hline(aes(yintercept = 0), size = 0.125) +
-    geom_ribbon(
-      data = irf_medium_employment_matrix %>%
-        filter(Imp == "Response to a uncertainty shock"),
-      aes(ymin = NAM_lower, ymax = NAM_upper),
-      fill = "steelblue",
-      alpha = 0.125
-    ) +
-    geom_line(aes(colour = Imp, linetype = Imp)) +
-    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
-    scale_y_continuous(breaks = seq(20, -60, by = -10)) +
-    scale_color_manual(values = c(viridis(1), "steelblue")) +
-    scale_linetype_manual(values = c("dotdash", "dashed")) +
-    labs(
-      caption = "Source: Own calculations",
-      x = "Months after the shock",
-      y = "Impact on employment",
-      colour = "",
-      linetype = ""
-    ) +
-    theme(legend.position = "bottom")
-```
-
-Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-market uncertainty shock. Industrial production displays a fall of around 0.30 \% within 12 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a fall the stock-market is also plotted (dotted line) displaying a much more large drop over the subsequent 2 years. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity.
-
-```{r VAR_trivariate_lag}
-VAR_trivariate_lag <- VARselect(
-  VAR_data %>% select(
-    Production_NAICS_log_cycle,
-    Employment_manu_lin_cycle,
-    NAM
-  ),
-  lag.max = 24
-)
-```
-
-```{r VAR_trivariate}
-VAR_trivariate <- VAR(
-  VAR_data %>% select(
-    Production_NAICS_log_cycle,
-    Employment_manu_lin_cycle,
-    NAM
-  ),
-  lag.max = 24,
-  ic = "AIC"
-)
-```
-
-```{r irf_trivariate, warning = FALSE}
-irf_trivariate <- irf(
-  VAR_trivariate,
-  impulse = "NAM",
-  response = "Production_NAICS_log_cycle",
-  n.ahead = 60,
-  runs = 100,
-  ci = 0.95
-)
-```
-
-```{r VAR_quadvariate}
-VAR_quadvariate <- VAR(
-  VAR_data %>% select(
-    Production_NAICS_log_cycle,
-    Employment_manu_lin_cycle,
-    StockMarketIndex_log_cycle,
-    NAM
-  ),
-  lag.max = 24,
-  ic = "AIC"
-)
-```
-
-```{r irf_quadvariate, warning = FALSE}
-irf_quadvariate <- irf(
-  VAR_quadvariate,
-  impulse = "NAM",
-  response = "Production_NAICS_log_cycle",
-  n.ahead = 60,
-  runs = 100,
-  ci = 0.95
-)
-```
-
-```{r VAR_quadvariate_reverse}
-VAR_quadvariate_reverse <- VAR(
-  VAR_data %>% select(
-    NAM,
-    StockMarketIndex_log_cycle,
-    Employment_manu_lin_cycle,
-    Production_NAICS_log_cycle
-  ),
-  lag.max = 24,
-  ic = "AIC"
-)
-```
-
-```{r irf_quadvariate_reverse, warning = FALSE}
-irf_quadvariate_reverse <- irf(
-  VAR_quadvariate_reverse,
-  impulse = "NAM",
-  response = "Production_NAICS_log_cycle",
-  n.ahead = 60,
-  runs = 100,
-  ci = 0.95
-)
-```
-
-In Figure \@ref(fig:robustness) the VAR is reestimated using a simple trivariate VAR (industrial production, employment and non-asset-market uncertainty index only) also display a drop (dashed line). The "quadvariate" VAR (industrial production, employment, stock-market and non-asset-market uncertainty index only) also displays a similar drop (solid line), as does the quadvariate VAR with the variable ordering reversed (dotted line). Hence the response of industrial production to a uncertainty shock appears robust to both the basic selection and the ordering of variables.
-
-(ref:robustness) **VAR model is robust to different variable sets and ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of non-asset-market uncertainty. The estimation period runs from January 1985 to July 2017. The axe is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production).
-
-```{r robustness, fig.cap = "(ref:robustness)", fig.scap = "VAR model is robust to different variable sets and ordering", out.extra = ""}
-tibble(
-  Months = 0:60,
-  Trivariate = irf_trivariate[["irf"]][["NAM"]],
-  Quadvariate = irf_quadvariate[["irf"]][["NAM"]],
-  `Quadvariate in reverse` = irf_quadvariate_reverse[["irf"]][["NAM"]]
-) %>%
-  gather(
-    Trivariate, Quadvariate, `Quadvariate in reverse`,
-    key = "VAR",
-    value = "Shock"
-  ) %>%
-  ggplot(aes(Months, Shock)) +
-    geom_hline(aes(yintercept = 0), size = 0.125) +
-    geom_line(aes(colour = VAR, linetype = VAR)) +
-    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
-    #scale_y_continuous(breaks = seq(0, -0.40, by = -0.05)) +
-    scale_color_viridis_d() +
-    labs(
-      caption = "Source: Own calculations",
-      x = "Months after the shock",
-      y = "% impact on production",
-      colour = "",
-      linetype = ""
-    ) +
-    theme(legend.position = "bottom")
 ```
 
 ## Forecasting {#forecasting}
@@ -868,4 +570,295 @@ kable(
   , latex_gap_space = "1em"
   ) %>% 
   landscape() 
+```
+
+## Robustness {#robustness}
+
+I perform several robustness exercises varying the econometric methodology employed to create the non-asset-market uncertainty index. I estimate the uncertainty index using PCA and PCA estimates runs through Kalman ﬁlter ---two-step--- instead of quasi-maximum likelihood. The results are summarized in Figure \@ref(fig:robustness-methods). In general, the uncertainty index behaves in a very similar fashion, regardless of the factor methodology used to summarize the components of the series.
+
+In the same way I employ different variable sets and orderings of the VAR estimated in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]. First, I change the sector of the variables to the manufacturing sector with eight variables following @bloom:2009. The VAR estimations are run using monthly data from 1985 through July 2017. The variables in the estimation order are log industrial production in manufacturing, employment in manufacturing, average hours in manufacturing, log consumer price index (all urban consumers), log average hourly earnings for production workers in manufacturing, federal funds rate, stock-market index and non-asset-market uncertainty. The ordering is based on the assumptions that shocks instantaneously influence the stock market, then prices (wages, the consumer price index (CPI), and interest rates), and finally quantities (hours, employment, and output). All variables are Hamilton detrended with a look-ahead period of two years ($h = 24$), as explained in [Detrend].
+
+Figure \@ref(fig:production-medium) plots the impulse response function of industrial production (the dashed line) to a non-asset-market uncertainty shock. Industrial production displays a fall of around 0.85 \% within 15 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a impulse to the federal funds rate is also plotted (dotted line) displaying a minor drop over the subsequent 2 years^[The response to a fall the stock-market (not plotted) is similar in size and magnitude to the response to a rise in the federal funds rate.]. Figure \@ref(fig:employment-medium) repeats the same exercise for employment, displaying a similar drop in activity.
+
+In Figure \@ref(fig:robustness), the VAR results are show to be robust to a variety of alternative variables sets and orderings. The VAR is reestimated using a simple trivariate VAR (log industrial production in manufacturing, employment in manufacturing and non-asset-market uncertainty index only) also display a drop (dashed line). The "quadvariate" VAR (log industrial production in manufacturing, employment in manufacturing, stock-market index and non-asset-market uncertainty index only) also displays a similar drop (solid line), as does the quadvariate VAR with the variable ordering reversed (dotted line). Hence the response of industrial production to a uncertainty shock appears robust to both the basic selection and the ordering of variables.
+
+Henceforth, Figures \@ref(fig:robustness-methods), \@ref(fig:production-medium), \@ref(fig:employment-medium) and \@ref(fig:robustness) confirm the robustness of the DFM to the methodology used and of VAR results to a range of alternative approaches over variable ordering and variable inclusion.
+
+(ref:robustness-methods) **Robustness to estimation method**: The figure shows the comparation between the non-asset-market uncertainty index using quasi-maximum likelihood, principal components and two-step. All the indexes have been standardized to make proper comparisons.
+
+```{r robustness-methods, fig.cap = "(ref:robustness-methods)", fig.scap = "Robustness to estimation method"}
+DFM_base %>% 
+  mutate(
+    PCA = (PCA - max(PCA)) / (PCA[1] - max(PCA)) * 100,
+    `Two-step` = (
+      (`Two-step` - max(`Two-step`)) / (`Two-step`[1] - max(`Two-step`)) * 100
+    ),
+    QML = (QML - max(QML)) / (QML[1] - max(QML)) * 100
+  ) %>% 
+  gather(PCA:QML, key = "Method", value = "Index") %>% 
+  ggplot(aes(Date, Index)) +
+    geom_cycle(fill = "grey50") +
+    geom_line(aes(colour = Method)) +
+    scale_x_date(date_breaks = "3 year", date_labels = "%Y") +
+    scale_y_continuous(limits = c(-100, 600)) +
+    scale_colour_viridis_d(option = "inferno") +
+    labs(
+      caption = "Source: Own calculations",
+      x = "",
+      y = ""
+    )
+```
+
+```{r chosen_variables_eight}
+chosen_variables_eight <- c(
+  "Production_NAICS_log_cycle",
+  "Employment_manu_lin_cycle",
+  "Inflation_urban_cycle",
+  "Wages_manu_log_cycle",
+  "Labor_manu_lin_cycle",
+  "FederalFundsRate_lin_cycle",
+  "StockMarketIndex_log_cycle",
+  "NAM"
+)
+```
+
+```{r var_medium_lag}
+VAR_medium_lag <- VARselect(
+  VAR_data %>% select(!!!chosen_variables_eight),
+  lag.max = 24
+)
+```
+
+```{r VAR_medium}
+VAR_medium <- VAR(
+  VAR_data %>% select(!!!chosen_variables_eight),
+  p = 12
+)
+```
+
+```{r irf_medium_production, warning = FALSE}
+irf_medium_production <- irf(
+  VAR_medium,
+  impulse = c("NAM", "FederalFundsRate_lin_cycle"),
+  response = "Production_NAICS_log_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+```{r irf_medium_production_matrix}
+irf_medium_production_matrix <- tibble(
+  Months = 0:60,
+  `Response to a non-asset-market uncertainty shock` = as.vector(
+    irf_medium_production[["irf"]][["NAM"]]
+  ),
+  NAM_lower = as.vector(irf_medium_production[["Lower"]][["NAM"]]),
+  NAM_upper = as.vector(irf_medium_production[["Upper"]][["NAM"]]),
+  `Response to a federal funds rate shock` = -as.vector(
+    irf_medium_production[["irf"]][["FederalFundsRate_lin_cycle"]]
+  )
+) %>%
+  gather(
+    `Response to a non-asset-market uncertainty shock`,
+    `Response to a federal funds rate shock`,
+    key = "Imp",
+    value = "Res"
+  )
+```
+
+(ref:production-medium) **Decline of production under uncertainty in the eight variable VAR**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of production under uncertainty", out.extra = ""}
+irf_medium_production_matrix %>%
+  ggplot(aes(Months, Res)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      data = irf_medium_production_matrix %>% 
+        filter(Imp == "Response to a uncertainty shock"),
+      aes(ymin = NAM_lower, ymax = NAM_upper),
+      fill = "steelblue",
+      alpha = 0.125
+    ) +
+    geom_line(aes(colour = Imp, linetype = Imp)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(0.55, -0.95, by = -0.15)) +
+    scale_color_manual(values = c(inferno(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "% impact on production",
+      colour = "",
+      linetype = ""
+    ) +
+    theme(legend.position = "bottom")
+```
+
+```{r irf_medium_employment, warning = FALSE}
+irf_medium_employment <- irf(
+  VAR_medium,
+  impulse = c("NAM", "FederalFundsRate_lin_cycle"),
+  response = "Employment_manu_lin_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+```{r irf_medium_employment_matrix}
+irf_medium_employment_matrix <- tibble(
+  Months = 0:60,
+  `Response to a non-asset-market uncertainty shock` = as.vector(
+    irf_medium_employment[["irf"]][["NAM"]]
+  ),
+  NAM_lower = as.vector(irf_medium_employment[["Lower"]][["NAM"]]),
+  NAM_upper = as.vector(irf_medium_employment[["Upper"]][["NAM"]]),
+  `Response to a federal funds rate shock` = -as.vector(
+    irf_medium_employment[["irf"]][["FederalFundsRate_lin_cycle"]]
+  )
+) %>%
+  gather(
+    `Response to a non-asset-market uncertainty shock`,
+    `Response to a federal funds rate shock`,
+    key = "Imp",
+    value = "Res"
+  )
+```
+
+(ref:employment-medium) **Decline of employment under uncertainty in the eight variable VAR**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of employment under uncertainty", out.extra = ""}
+irf_medium_employment_matrix %>%
+  ggplot(aes(Months, Res)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      data = irf_medium_employment_matrix %>%
+        filter(Imp == "Response to a uncertainty shock"),
+      aes(ymin = NAM_lower, ymax = NAM_upper),
+      fill = "steelblue",
+      alpha = 0.125
+    ) +
+    geom_line(aes(colour = Imp, linetype = Imp)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(60, -90, by = -15)) +
+    scale_color_manual(values = c(inferno(1), "steelblue")) +
+    scale_linetype_manual(values = c("dotdash", "dashed")) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact on employment",
+      colour = "",
+      linetype = ""
+    ) +
+    theme(legend.position = "bottom")
+```
+
+```{r VAR_trivariate_lag}
+VAR_trivariate_lag <- VARselect(
+  VAR_data %>% select(
+    Production_NAICS_log_cycle,
+    Employment_manu_lin_cycle,
+    NAM
+  ),
+  lag.max = 24
+)
+```
+
+```{r VAR_trivariate}
+VAR_trivariate <- VAR(
+  VAR_data %>% select(
+    Production_NAICS_log_cycle,
+    Employment_manu_lin_cycle,
+    NAM
+  ),
+  p = 12
+)
+```
+
+```{r irf_trivariate, warning = FALSE}
+irf_trivariate <- irf(
+  VAR_trivariate,
+  impulse = "NAM",
+  response = "Production_NAICS_log_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+```{r VAR_quadvariate}
+VAR_quadvariate <- VAR(
+  VAR_data %>% select(
+    Production_NAICS_log_cycle,
+    Employment_manu_lin_cycle,
+    StockMarketIndex_log_cycle,
+    NAM
+  ),
+  p = 12
+)
+```
+
+```{r irf_quadvariate, warning = FALSE}
+irf_quadvariate <- irf(
+  VAR_quadvariate,
+  impulse = "NAM",
+  response = "Production_NAICS_log_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+```{r VAR_quadvariate_reverse}
+VAR_quadvariate_reverse <- VAR(
+  VAR_data %>% select(
+    NAM,
+    StockMarketIndex_log_cycle,
+    Employment_manu_lin_cycle,
+    Production_NAICS_log_cycle
+  ),
+  p = 12
+)
+```
+
+```{r irf_quadvariate_reverse, warning = FALSE}
+irf_quadvariate_reverse <- irf(
+  VAR_quadvariate_reverse,
+  impulse = "NAM",
+  response = "Production_NAICS_log_cycle",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+(ref:robustness) **VAR model is robust to different variable sets and ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of non-asset-market uncertainty. The estimation period runs from January 1985 to July 2017. The axe is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production).
+
+```{r robustness, fig.cap = "(ref:robustness)", fig.scap = "VAR model is robust to different variable sets and ordering", out.extra = ""}
+tibble(
+  Months = 0:60,
+  Trivariate = irf_trivariate[["irf"]][["NAM"]],
+  Quadvariate = irf_quadvariate[["irf"]][["NAM"]],
+  `Quadvariate in reverse` = irf_quadvariate_reverse[["irf"]][["NAM"]]
+) %>%
+  gather(
+    Trivariate, Quadvariate, `Quadvariate in reverse`,
+    key = "VAR",
+    value = "Shock"
+  ) %>%
+  ggplot(aes(Months, Shock)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_line(aes(colour = VAR, linetype = VAR)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    scale_y_continuous(breaks = seq(0, -1.50, by = -0.25)) +
+    scale_color_viridis_d(option = "inferno") +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "% impact on production",
+      colour = "",
+      linetype = ""
+    ) +
+    theme(legend.position = "bottom")
 ```

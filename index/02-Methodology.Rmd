@@ -77,3 +77,15 @@ Given the parameters, the Kalman filter can be used to compute the likelihood an
 #### Hybrid methods
 
 One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter [@dozgianreic:2011]. In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate $F_{t}$ by the Kalman filter.
+
+## VAR {#var}
+
+### Lag order {#lag-order}
+
+It is necessary to choose the lag-order $p$ of the VAR models calculated in the next sections. First, defining the maximum lag order that is considered reasonable as $p_{max}$ and the minimum lag order $p_{min}$ set to zero one criterion is whether the lag-order estimator is consistent for the true lag-order $p_{0}$ where the DGP is VAR($p_{0}$), provided $p_{min} \leq p_{0} \leq p_{max}$. The Schwarz Information Criterion (SIC) and the Hannan-Quin Criterion (HQC) are consistent for $p_{0}$ in contrast to the Akaike Information Criterion (AIC) [@lutkepohl:2005]. 
+
+On the other hand, it is worthly examine the finite sample properties of the lag-order estimators. Even if we grant the premise that $p_{min} \leq p_{0} \leq p_{max}$, one may not want to overrate the importance of the lag-order estimator being consistent. The convergence of $\hat{p}$ toward $p_{0}$ can be very slow in practice, and in small samples consistent lag-order selection criteria tend to be strongly downbiased toward $p_{min}$ [@kilian:2001]. In small samples the distribution of the AIC lag-order estimates tends to be more balanced about the true lag order than for the remaining criteria [@kililutk:2017]. Likewise, because this study have no interest in the lag order of the process but impulse responses, forecast, and related statistics that can be written as smooth functions of VAR model parameters it is necessary assure that these statistics of interest can be consistenly estimated. They are consistently estimated as long as the lag order is not underestimated asymptotically. Besides, the probability of the AIC overfitting the VAR model is negligible asymptotically [@paultjos:1985]. So efficiency lost is not a major concern.
+
+Furthermore, the MSE of the impulse-response estimates is lower for models estimated with lags selected by the AIC in contrast with more parsimonious criteria as SIC and HQC [@ventlutz:2005]. 
+
+As a result, the relevant criteria used in this study is the AIC as it is the most reliable estimator of $p_{0}$ compared with other information criteria [@gonzpita:2002].

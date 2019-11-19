@@ -1,1 +1,3 @@
 # Conclusion {-}
+
+I propose an index of non-asset-market uncertainty. I construct the index on a monthly basis, for the United States'economy between 1985 and 2017. As such

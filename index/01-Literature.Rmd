@@ -1,11 +1,7 @@
 # Literature {#literature}
 
-## lag order
+## lag order raw
 
-- @paultjos:1985
-- @gonzpita:2002
-- @kilian:2001
-- @ventlutz:2005
 - @kilian:1998
 
 ## fixed lag

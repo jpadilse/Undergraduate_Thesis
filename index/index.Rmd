@@ -4,7 +4,7 @@ date: "`r format(Sys.time(), '%B %Y')`"
 institution: "Universidad del Valle"
 division: "Social and Economic Sciences"
 advisor: "Jorge Mario Uribe Gil"
-department: "Economics"
+department: "Faculty of Economics"
 degree: "Bachelor of Economics"
 title: "Non-Asset-Market Uncertainty"
 knit: "bookdown::render_book"
@@ -12,8 +12,10 @@ site: bookdown::bookdown_site
 output: thesisdown::thesis_pdf
 abstract: |
   `r paste(readLines("00-Abstract.Rmd"), collapse = "\n  ")`
-bibliography: [bib/thesis.bib, bib/packages.bib]
-csl: csl/apa.csl
+bibliography: [bib/thesis.bib]
+link-citations: yes
+colorlinks: yes
+csl: [csl/apa.csl]
 lot: true
 lof: true
 header-includes:
@@ -31,6 +33,9 @@ header-includes:
    - \usepackage[normalem]{ulem}
    - \usepackage{makecell}
    - \usepackage{xcolor}
+   - \usepackage{caption}
+   - \captionsetup[figure]{font=small}
+   - \captionsetup[table]{font=small}
 ---
 
 ```{r setup, include = FALSE}
@@ -83,16 +88,7 @@ conflicted::conflict_prefer("select", "dplyr")
 conflicted::conflict_prefer("filter", "dplyr")
 conflicted::conflict_prefer("VAR", "vars")
 conflicted::conflict_prefer("here", "here")
-```
-
-```{r write_bib, warning = FALSE}
-# Creating a package bibliography File
-
-knitr::write_bib(
-  c("dynfactoR", "psych", "strucchange", "vars"), 
-  file = "./bib/packages.bib", 
-  width = 80
-)
+conflicted::conflict_prefer("lag", "dplyr")
 ```
 
 ```{bash xlsx2csv, eval = FALSE}
@@ -112,3 +108,5 @@ comma <- function(x) format(x, digits = 2, big.mark = ",")
 ```
 
 # Introduction {.unnumbered}
+
+Uncertainty has been a very important issue in economic theory, especially since it is considered a different concept of risk knight15, because agents are always exposed to scenarios of uncertainty (\ cite {greenspan04} ). Therefore, it is necessary to measure market uncertainty to analyze the effects of its changes in economic activity.
