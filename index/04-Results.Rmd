@@ -1,8 +1,8 @@
 # Results {#results}
 
-In this chapter I present the new uncertainty index in [Non-Asset-Market Index]; I compare it with some of the main uncertainty indicators in [Correlation with Uncertainty Indicators]; I analyze the relationship between me proposal and some real and financial variables in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]; I evaluate the forecasting capacity of use the non-asset-market index in contrast with traditional uncertainty indexes in [Forecasting]; and, I perform several robustness exercises in [Robustness].
+In this chapter I present the uncertainty index that I proposed in [Non-Asset-Market Uncertainty Index]. Then, I compare it with the uncertainty indexes from which it comes in [Correlation with Uncertainty Indexes]. After that, I evaluate the relationship between the new index and some real and financial variables in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks]. In the next stage, I shows how me proposal forecast better that alternative indexes in [Forecasting]. Finally, I perform several robustness exercises in [Robustness].
 
-## Non-Asset-Market Index {#non-asset-market-index}
+## Non-Asset-Market Uncertainty Index {#non-asset-market-uncertainty-index}
 
 ```{r Import_Uncertainty}
 source(here("index", "R", "Import-Uncertainty.R"))
@@ -82,9 +82,13 @@ Residuals_break <- DFM_base %>%
 DFM_base %<>% mutate(NAM = Residuals_break)
 ```
 
-(ref:non-asset-market-index) **Non-Asset-Market-Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
+I estimate the non-asset-market uncertainty index following the quasi-maximum likelihood estimator of @dozgianreic:2012 as described in [Dynamic factor model], although alternative estimators are tested in [Robustness]. Moreover, I use one dynamic factor, one static factor and one lag in the specification of the model because I am looking for one single summary index that captures the common comovements of uncertainty, hence, one dynamic and static factor seems appropriate. This binds the lag order to one as the lag order can not be greater that the ratio between the number of static factors and the number of dynamic factors---$p \le \frac{r}{q}$ [@kililutk:2017].
 
-```{r non-asset-market-index, fig.cap = "(ref:non-asset-market-index)", fig.scap = "Non-Asset-Market-Index"}
+In the Figure \@ref(fig:non-asset-market-uncertainty-index) is presented the non-asset-market index together with the recession dates in the United States as indicated by the National Bureau of Economic Research (NBER) on its website <https://www.nber.org/cycles.html>. The index peaks coincide with well known episodes of uncertainty in the economy as the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009 although only the last has considerable impact.
+
+(ref:non-asset-market-uncertainty-index) **Non-Asset-Market Uncertainty Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
+
+```{r non-asset-market-uncertainty-index, fig.cap = "(ref:non-asset-market-uncertainty-index)", fig.scap = "Non-Asset-Market Uncertainty Index"}
 DFM_base %>% 
   ggplot(aes(Date, NAM)) + 
     geom_cycle(fill = "grey50") +
@@ -100,16 +104,20 @@ DFM_base %>%
     )
 ```
 
+<!-- The second estimator used is the Two-Step developed by @dozgianreic:2011. This methods uses PCA estimates and runs them through Kalman filter. -->
+
+<!-- The third estimator used is the Quasi-Maximum Likelihood by @dozgianreic:2012. Similar to two-step estimator, however Kalman filtering procedure is iterated until Expectation-Maximization (EM) algorithm converges. -->
+
+In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis, persistence and half-life for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence---AR(1) with drift. The basic idea is to calculate an $F$ statistic---often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]---for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$, where $T$ is the total number of observations, and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9 testing the hypothesis that the coefficients are constant against the alternative that they have different values before and after the breakpoint, omitting the leading and trailing 15 \% of observations.] [@andrews:2003]. This modified Chow test is variously called the Quand Likelihood Ratio (QLR) statistic [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks, see @hansen:2001.]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression. Then, the two periods are choose following this methodology.
+
+The summary statistics in Table  \@ref(tab:summary-table) for the full period are misleading. For the first period of the sample the persistence is less that for the second period, so the time before a shock halve the distance to the stationary mean is smaller. Moreover, the distribution of the uncertainty index is different in location and shape for each period: the first part is slightly asymmetric and it has fewer outliers while the second part has more values above that below the mean and it has several values far from the mean. However, the similarity between both periods is substantial but the shock for the Great Recession in 2007--2009. Therefore, the level of uncertainty is continual in the economy which is related to the knightian framework.
 
 
-I estimate the DFM using one static and dynamic factor, because I am looking for the underlying structure behind uncertainty. The monthly non-asset-market uncertainty index is presented in Figure \@ref(fig:non-asset-market-index), together with the recession dates in the United States, as indicated by the NBER on its web site. The index peaks coincide with well-documented episodes of uncertainty in the financial markets and the real economy, including the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009. That is to say, recession dates clearly correlate with the amount of uncertainty in the market and them are followed by a notable uncertainty shock.
-
-In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis and persistence for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence ---AR(1) with drift---. The basic idea is to calculate an $F$ statistic ---often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]--- for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$, where $T$ is the total of observations^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9 testing the hypothesis that the coefficients are constant against the alternative that they have different values before and after the breakpoint, omitting the leading and trailing 15 \% of observations.], and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value [@andrews:2003]. This modified Chow test is variously called the *Quand Likelihood Ratio (QLR) statistic* [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks, see @hansen:2001.]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression.
 
 ```{r summary-table-raw}
 summary_table_raw <- tibble(
   Statistic = c(
-    "Skewness", "Excess Kurtosis", "Persistence, AR(1)", "Half-life (months)"
+    "Skewness", "Excess kurtosis", "Persistence, AR(1)", "Half-life (months)"
   ),
   `1985:M1--2017:M7` = DescribeIndex(
     DFM_base[["NAM"]]
@@ -123,17 +131,15 @@ summary_table_raw <- tibble(
 )
 ```
 
-Table \@ref(tab:summary-table) shows that using the full sample to calculate persistence can lead to a spurious estimation of the summary statistics. Indeed, the sample distribution of the uncertainty index in the two sub-samples looks quite distinct. In the first part of the sample, persistence is greater (`r comma(summary_table_raw[3, 2, drop = TRUE])`) and the distribution that characterizes them tends to generate a higher number of *outliers* (kurtosis equal to `r comma(summary_table_raw[2, 3, drop = TRUE])`) and they are more likely to be above than below the mean (`r comma(summary_table_raw[1, 3, drop = TRUE])` is the asymmetric coefficient). In contrast, in the second part of the sample the persistence is smaller (`r comma(summary_table_raw[3, 4, drop = TRUE])`) and there are fewer observations distant from the mean (kurtosis equal to `r comma(summary_table_raw[2, 4, drop = TRUE])`) and, lastly, the distribution presents a slightly asymmetric behavior (skewness equal to `r comma(summary_table_raw[1, 4, drop = TRUE])`). This behavior may be interpreted as uncertainty showing some degree of inconsistency across time, which is related to the knightian framework, in which uncertainty is indeed understood as a non-predictable state.
-
-(ref:summary-table) **Summary tatistics of non-asset-market uncertainty index in two sub-samples**: The table reports estimates of skewness and kurtosis, the first-order autocorrelation coefficient and the half-life of an aggregate uncertainty innovation from a univariate autoregression (AR).
+(ref:summary-table) **Summary Statistics of Non-Asset-Market Uncertainty Index in Two Sub-Samples**: The table reports estimates of skewness, kurtosis, first-order autocorrelation coefficient and half-life of an aggregate uncertainty innovation.
 
 ```{r summary-table, results = "asis"}
 kable(
   summary_table_raw
-  , digits = 2,
+  , digits = 3,
   , align = c("l", "c", "c", "c")
   , caption = "(ref:summary-table)"
-  , caption.short = "Summary statistics of non-asset-market uncertainty index in two sub-samples"
+  , caption.short = "Summary Statistics of Non-Asset-Market Uncertainty Index in Two Sub-Samples"
   , booktabs = TRUE
 ) %>% 
   add_header_above(c("", "Sample period" = 3))
@@ -146,11 +152,9 @@ scree_plot <- fa.parallel(
   fa = "pc",
   n.iter = 100,
   plot = FALSE, 
-  quant = 0.99
+  quant = 0.999
 )
 ```
-
-The first estimator used for construct the index is the Principal Component Estimator. Its properties are well discussed in @stocwats:2002. Because there isn't missing data the estimator is suitable.
 
 <!-- A scree plot displays the marginal contribution of the kth principal component to the aver- -->
 <!-- age R 2 of the N regressions of X t against the first k principal components. This marginal -->
@@ -163,14 +167,13 @@ Although the goal is construct one economic index from the underlying series, it
 
 The figure \@ref(fig:scree-plot) displays the scree test based on the observed eigenvalues (as dashed line and points), the mean eigenvalues derived from 1000 random data matrices (as dotdashed line), and the eigenvalues greater than 1 (as a horizontal line at $y = 1$). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
 
-(ref:scree-plot) **Scree Plot**: The Figure shows a scree plot and parallel analysis with 1000 simulations ---all components with eigenvalue greater that simulated value from parallel analysis are fill in black--- which suggest retaining a single component.
+(ref:scree-plot) **Scree Plot for Uncertainty Dataset, 1985--2017**: The Figure shows a scree plot and parallel analysis with 1000 simulations ---all components with eigenvalue greater that simulated value from parallel analysis are fill in black--- which suggest retaining a single component.
 
-```{r scree-plot, fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot", out.extra = ""}
+```{r scree-plot, fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot for Uncertainty Dataset, 1985--2017"}
 tibble(
   Component_Number = factor(1:length(uncertainty_indexes[-1])), 
   Real = scree_plot[["pc.values"]] / length(uncertainty_indexes[-1]), 
-  Sim = scree_plot[["pc.sim"]] / length(uncertainty_indexes[-1]),
-  Parallel = ifelse(Real > Sim, "greater", "less")
+  Parallel = c("choosen", rep("others", length(uncertainty_indexes[-1])))
 ) %>% 
   ggplot(aes(Component_Number, Real, fill = Parallel)) +
     geom_col() +
@@ -183,15 +186,72 @@ tibble(
     theme(legend.position = "none")
 ```
 
-The second estimator used is the Two-Step developed by @dozgianreic:2011. This methods uses PCA estimates and runs them through Kalman filter.
+## Correlation with Uncertainty Indexes {#correlation-with-uncertainty-indexes}
 
-The third estimator used is the Quasi-Maximum Likelihood by @dozgianreic:2012. Similar to two-step estimator, however Kalman filtering procedure is iterated until Expectation-Maximization (EM) algorithm converges.
+```{r corr_indexes, message = FALSE}
+corr_indexes <- cor(
+  uncertainty_indexes %>%
+    inner_join(DFM_base) %>% 
+    select(-c(Date, PCA, `Two-step`, QML)) %>% 
+    rename(
+      `EPU (3C)` = EPU3C,
+      `EPU (News)` = EPUNews,
+      `MPU (AWN)` = MPU_BBD_AWN,
+      `MPU (10)` = MPU_BBD_10,
+      `MPU` = MPU_HRS,
+      `MU (h = 1)` = MU_JLN_h1,
+      `MU (h = 3)` = MU_JLN_h3,
+      `MU (h = 12)` = MU_JLN_h12,
+      `RU (h = 1)` = RU_JLN_h1,
+      `RU (h = 3)` = RU_JLN_h3,
+      `RU (h = 12)` = RU_JLN_h12,
+      `FU (h = 1)` = FU_JLN_h1,
+      `FU (h = 3)` = FU_JLN_h3,
+      `FU (h = 12)` = FU_JLN_h12,
+      `Non-Asset-Market` = NAM
+    )
+)
+```
 
-All three estimators gives similar results, from now I use for analysis the index obtained from the Quasi-Maximum Likelihood method.
+(ref:corr-plot) **Corrgram Between Non-Asset-Market Uncertainty Index and Other Uncertainty Indexes**: The Figure shows the correlation between the non-asset-market uncertainty indexes. The variables are defined as: EPU (3C): economic policy uncertainty index from three underlying components, EPU (News): economic policy uncertainty index based on newspaper archives from Access World New's NewsBank service, MPU (AWN): monetary policy uncertainty from draws on hundreds of U.S. newspapers covered by Access World News, MPU (10): monetary policy uncertainty from draws on a balanced panel of 10 major national and regional U.S. newspapers, MPU: monetary policy uncertainty from draws on the Wall Street Journal, New York Times and Washington post, MU (h): macroeconomic uncertainty at h horizon, RU (h): real uncertainty at h horizon, FU (h): financial uncertainty at h horizon and Non-Asset-Market: the uncertainty index propose in this document.
 
-## Correlation with Uncertainty Indicators {#correlatio-with-uncertainty-indicators}
+```{r corr-plot, fig.asp = 0.85, fig.cap = "(ref:corr-plot)", fig.scap = "Corrgram Between Non-Asset-Market Uncertainty Index and Other Uncertainty Indexes"}
+corrplot(
+  corr_indexes,
+  method = "color", 
+  type = "lower",
+  col = viridis(20, option = "B"),
+  order = "FPC", 
+  tl.cex = 0.8,
+  tl.col = "black",
+  tl.offset = 1,
+  tl.srt = 360,
+  cl.cex = 0.8,
+  cl.offset = 0.9,
+  cl.length = 11, 
+  cl.ratio = 0.2
+)
+```
+
+To interpret the Figure \@ref(fig:corr-plot), a light color represent a positive correlation between the two variables that meet at that cell. Conversely, a dark color represent a negative correlation. More saturated the color, the greater the magnitude of the correlation. Also, the rows and columns have been reordered (using principal components analysis as explained in @friendly:2002 for corrgrams) to cluster variables together that have similar correlation patterns. It is see that from the shaded cells that the non-asset-market uncertainty index is much more correlated with the econometrics measures of uncertainty and less with the newspaper-based measures of uncertainty.
 
 ## Estimates on the Impact of Non-Asset-Market Uncertainty Shocks {#var-baseline}
+
+Following the model proposed by @chrieichevan:2005 ---and used as a base in @chulguilurib:2017--- the characterization of monetary policy is defined by:
+
+\begin{equation}
+    R_{t} = f(\Omega_{t}) + \epsilon_{t} (\#eq:R)
+\end{equation}
+
+Where, $R_ {t}$ is the effective federal funds rate, $f$ is a linear function, $\Omega_{t}$ is a set of information and $\epsilon_{t}$ is the monetary policy shock ---where it is assumed that $\epsilon_{t}$ is orthogonal to $\Omega_{t}$.
+
+Considering $Y_{t}$ as the set of variables to which the dynamic effect of a monetary policy shock will be analyzed, there is:
+
+\begin{equation}
+    Y_{t} = [Y_{1t}, R_{t}, Y_{2t}]' (\#eq:variables)
+\end{equation}
+
+The vector $Y_{1t}$ is composed of the variables whose values at the moment $t$ are contained in $\Omega_{t}$ and it is assumed that they do not respond simultaneously to a monetary policy shock: production, employment, consumption , inflation, new orders and working hours. The vector $Y_{2t}$ consists of the values at the moment $t$ of all the other variables in $\Omega_{t}$, which simultaneously respond to a monetary policy shock: Standard \& Poor's 500 and Mass monetary (M2).
 
 ```{r Import_USA_Data}
 source(here("index", "R", "Import-USA-Data.R"))
@@ -274,9 +334,9 @@ matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
   )
 ```
 
-(ref:irf-baseline-plot) **Economic Dynamics under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:irf-baseline-plot) **Economic Dynamics Under Uncertainty**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r irf-baseline-plot, fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics under Uncertainty", out.extra = ""}
+```{r irf-baseline-plot, fig.asp = 1.236, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics under Uncertainty"}
 matrix_irf %>%
   filter(Variable %in% c(
     "Production",
@@ -366,7 +426,7 @@ fevd_baseline_production %>%
     scale_fill_viridis_d(option = "inferno") +
     labs(
     caption = "Source: Own calculations",
-    x = "Horizont",
+    x = "Horizon",
     y = "",
     fill = ""
     )
@@ -383,7 +443,7 @@ fevd_baseline_R %>%
     scale_fill_viridis_d(option = "inferno") +
     labs(
     caption = "Source: Own calculations",
-    x = "Horizont",
+    x = "Horizon",
     y = "",
     fill = ""
     )
@@ -434,7 +494,9 @@ knitr::kable(
 
 ## Forecasting {#forecasting}
 
-Evaluation of the forecasting capabilities of the different models is carried on with multistep-ahead forecast, computed by iterating forward the reduced form VAR, in the Table \@ref(tab:rmsfe-non-asset-market). Because the ultimate test of a forecasting model is its out-of-sample performance, \@ref(tab:rmsfe-non-asset-market) focuses on pseudo out-of-sample forecasts over the period from 1985:M1 to 2017:M7 ---that is the \% 10 of the sample. It examines forecast horizonts of one to twenty-four quarters. The forecast $h$ steps ahead is computed by estimating the VAR through a given month, making the forecast $h$ steps ahead, reestimating the VAR through the next month, making the next forecast and so on through the forecast period.
+Evaluation of the forecasting capabilities of the VAR model using differents uncertainty indexes is carried on with multistep-ahead forecast, computed by iterating forward the reduced form VAR, in the Table \@ref(tab:rmsfe-non-asset-market). The core idea of an iterated forecast is that a VAR model is used to make a forecast one period ahead ($T + 1$) using data through period $T$. Then the model is used to make a forecast for date $T + 2$, given the data through date $T$, where the forecasted value for date $T + 1$ is treated as data for the purpose of making the forecast for period $T + 2$. Therefore, the one-step ahead forecast is used as an intermediate step to make the two-step ahead forecast. This process is iterated until the forecast is made for the desired forecast horizon $h$. In other words, to compute multistep iterated VAR forecasts $h$ steps ahead, it is necessary to compute forecasts of all variables for all intervening periods between $T$ and $T + h$. Seeing that the ultimate test of a forecasting model is its out-of-sample performance, \@ref(tab:rmsfe-non-asset-market) focuses on pseudo out-of-sample forecasts over the period from 1985:M1 to 2017:M7 ---that is the \% 10 of the sample. It examines forecast horizons of three months, six months, nine months and twelve months. 
+
+Table \@ref(tab:rmsfe-non-asset-market) shows the root mean square forecast error for each of the forecasting methods using a different uncertainty index. The mean squared forecast error is computed as the average squared value of the forecast error over the 1985--2017 out-of-sample period, and the resulting square root is the mean squared forecast error reported in the table. For instance, Table \@ref(tab:rmsfe-non-asset-market) indicates that the VAR model with the non-asset market index as last variable improves upon the VAR models with the economic policy uncertainty or macroeconomic uncertainty in replace. Specifically, the forecast method with the non-asset market uncertainty index has lower error for employment, labor and stock market index over the two remaining models and for production, wages and federal funds rate is the second best.
 
 ```{r EndOfSample}
 # End of sample dates
@@ -444,7 +506,7 @@ EndOfSample <- VAR_data %>%
 ```
 
 ```{r forecast_horizont}
-forecast_horizont <- list(3, 6, 9, 12, 15, 18, 21, 24)
+forecast_horizont <- list(3, 6, 12, 24)
 ```
 
 ```{r indexes}
@@ -470,9 +532,8 @@ Forecast_Error <- function(end_date, h, index) {
   VAR_model <- VAR(
     VAR_data %>%
       filter(Date <= end_date) %>%
-      select(!!!variables),
-    lag.max = 24,
-    ic = "AIC"
+      select(!!!variables), 
+    p = 12
   )
 
   # Sample data for n-period ahead forecast
@@ -541,7 +602,7 @@ rmsfe_table %<>%
     Labor = Labor_manu_lin_cycle,
     Inflation = Inflation_urban_cycle,
     Wages = Wages_manu_log_cycle,
-    `Federal Funds rate` = FederalFundsRate_lin_cycle,
+    `Federal funds rate` = FederalFundsRate_lin_cycle,
     `Stock market index` = StockMarketIndex_log_cycle,
   ) %>%
   mutate(
@@ -550,7 +611,7 @@ rmsfe_table %<>%
   select(`Forecast horizont`, everything())
 ```
 
-(ref:rmsfe-non-asset-market) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
+(ref:rmsfe-non-asset-market) **Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts, 1985:M1--2017:M7**: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions with different uncertainty index (models with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.
 
 ```{r rmsfe-non-asset-market, results = "asis"}
 kable(
@@ -562,12 +623,12 @@ kable(
   , booktabs = TRUE
   , linesep = ""
 ) %>% 
-  kable_styling(font_size = 8, full_width = TRUE) %>% 
+  kable_styling(full_width = TRUE) %>% 
   pack_rows(index = c(
-    "Non-asset-market uncertainty index" = 8, 
-    "Economic policy uncertainty index" = 8, 
-    "Macroeconomic uncertainty index" = 8)
-  , latex_gap_space = "1em"
+    "Non-asset-market uncertainty index" = 4, 
+    "Economic policy uncertainty index" = 4, 
+    "Macroeconomic uncertainty index" = 4)
+  , latex_gap_space = "2em"
   ) %>% 
   landscape() 
 ```
@@ -584,9 +645,9 @@ In Figure \@ref(fig:robustness), the VAR results are show to be robust to a vari
 
 Henceforth, Figures \@ref(fig:robustness-methods), \@ref(fig:production-medium), \@ref(fig:employment-medium) and \@ref(fig:robustness) confirm the robustness of the DFM to the methodology used and of VAR results to a range of alternative approaches over variable ordering and variable inclusion.
 
-(ref:robustness-methods) **Robustness to estimation method**: The figure shows the comparation between the non-asset-market uncertainty index using quasi-maximum likelihood, principal components and two-step. All the indexes have been standardized to make proper comparisons.
+(ref:robustness-methods) **Robustness to Estimation Method**: The figure shows the comparison between the non-asset-market uncertainty index using quasi-maximum likelihood [@dozgianreic:2012], principal components [@stocwats:2002] and two-step [@dozgianreic:2011]. All the indexes have been standardized to make proper comparisons.
 
-```{r robustness-methods, fig.cap = "(ref:robustness-methods)", fig.scap = "Robustness to estimation method"}
+```{r robustness-methods, fig.cap = "(ref:robustness-methods)", fig.scap = "Robustness to Estimation Method"}
 DFM_base %>% 
   mutate(
     PCA = (PCA - max(PCA)) / (PCA[1] - max(PCA)) * 100,
@@ -667,15 +728,15 @@ irf_medium_production_matrix <- tibble(
   )
 ```
 
-(ref:production-medium) **Decline of production under uncertainty in the eight variable VAR**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:production-medium) **Decline of Production Under Uncertainty in the Eight Variable VAR**: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of production under uncertainty", out.extra = ""}
+```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of Production Under Uncertainty in the Eight Variable VAR"}
 irf_medium_production_matrix %>%
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
     geom_ribbon(
       data = irf_medium_production_matrix %>% 
-        filter(Imp == "Response to a uncertainty shock"),
+        filter(Imp == "Response to a non-asset-market uncertainty shock"),
       aes(ymin = NAM_lower, ymax = NAM_upper),
       fill = "steelblue",
       alpha = 0.125
@@ -726,15 +787,15 @@ irf_medium_employment_matrix <- tibble(
   )
 ```
 
-(ref:employment-medium) **Decline of employment under uncertainty in the eight variable VAR**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:employment-medium) **Decline of Employment Under Uncertainty in the Eight Variable VAR**: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axle is in percentage. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of employment under uncertainty", out.extra = ""}
+```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of Employment Under Uncertainty in the Eight Variable VAR"}
 irf_medium_employment_matrix %>%
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
     geom_ribbon(
       data = irf_medium_employment_matrix %>%
-        filter(Imp == "Response to a uncertainty shock"),
+        filter(Imp == "Response to a non-asset-market uncertainty shock"),
       aes(ymin = NAM_lower, ymax = NAM_upper),
       fill = "steelblue",
       alpha = 0.125
@@ -833,9 +894,9 @@ irf_quadvariate_reverse <- irf(
 )
 ```
 
-(ref:robustness) **VAR model is robust to different variable sets and ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of non-asset-market uncertainty. The estimation period runs from January 1985 to July 2017. The axe is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production).
+(ref:robustness) **VAR Model is Robust to Different Variable Sets and Ordering**: The Figure shows the reaction of the industrial production to an unexpected increment of non-asset-market uncertainty. The estimation period runs from January 1985 to July 2017. The axle is in percentage. The models are defined as: trivariate (industrial production, employment and non-asset-market uncertainty shocks), Quadvariate (industrial production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and industrial production).
 
-```{r robustness, fig.cap = "(ref:robustness)", fig.scap = "VAR model is robust to different variable sets and ordering", out.extra = ""}
+```{r robustness, fig.cap = "(ref:robustness)", fig.scap = "VAR Model is Robust to Different Variable Sets and Ordering"}
 tibble(
   Months = 0:60,
   Trivariate = irf_trivariate[["irf"]][["NAM"]],

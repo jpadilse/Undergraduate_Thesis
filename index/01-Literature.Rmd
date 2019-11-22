@@ -28,11 +28,6 @@
 ## VAR-ref
 
 - @stocwats:2001
-- @chrieichevan:2005
-
-## Index
-
-- @chulguilurib:2017
 
 ## Trends
 

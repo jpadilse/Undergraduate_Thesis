@@ -36,6 +36,7 @@ header-includes:
    - \usepackage{caption}
    - \captionsetup[figure]{font=small}
    - \captionsetup[table]{font=small}
+   - \DeclareMathOperator{\diag}{diag}
 ---
 
 ```{r setup, include = FALSE}
@@ -57,6 +58,7 @@ if (!require(pacman)) install.packages("pacman")
 
 library(pacman)
 
+p_load(corrplot)
 p_load_gh("rbagd/dynfactoR")
 p_load(forcats)
 p_load(ggthemes)
