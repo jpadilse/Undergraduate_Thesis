@@ -1,3 +1,9 @@
 # Conclusion {-}
 
-I propose an index of non-asset-market uncertainty. I construct the index on a monthly basis, for the United States'economy between 1985 and 2017. As such
+I propose an index of non-asset-market uncertainty on a monthly basis for the United States' economy between 1985 and 2017. As such it can be used as instrument to evaluate policy interventions on uncertainty. 
+
+On the other hand I documented relation between the uncertainty index and established uncertainty periods such as bubble regimes in the stock market. In addition, I shows a break in the persistence of the series before and after the Great Recession 2007-2009. The series becomes more persistence and with shocks of greater duration.
+
+Furthermore, I discussed why me uncertainty index has appealing characteristics that made him more suitable for prediction and balances the extreme movements---high volatility and extreme correlation with recession dates---from the traditional uncertainty measures.
+
+The dynamics observed within the VAR model are compatible with previous findings. That is, a negative relation between the real variables such as production, employment, new orders and consumption. In the same way, its evidenced a negative relation with financial prices such as the stock market index. 

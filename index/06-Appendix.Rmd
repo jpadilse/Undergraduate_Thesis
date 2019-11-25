@@ -2,7 +2,7 @@
 
 `r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'` 
 
-# Reproducibility
+# Reproducibility {#reproducibility}
 
 Looking for the reproducibility of the main results in the text I save all files and scripts in a Github repository <https://github.com/jpadilse/Undergraduate_Thesis>. This allows replicate each model, graph and table of the document without any necessary modification. Henceforth, the steps for doing this are:
 

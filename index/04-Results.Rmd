@@ -94,8 +94,7 @@ scree_plot <- fa.parallel(
     mutate_all(~ scale(.)),
   fa = "pc",
   n.iter = 100,
-  plot = FALSE, 
-  quant = 0.999
+  plot = FALSE 
 )
 ```
 
@@ -118,6 +117,8 @@ tibble(
     theme(legend.position = "none")
 ```
 
+
+
 (ref:non-asset-market-uncertainty-index) **Non-Asset-Market Uncertainty Index**: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.
 
 ```{r non-asset-market-uncertainty-index, fig.cap = "(ref:non-asset-market-uncertainty-index)", fig.scap = "Non-Asset-Market Uncertainty Index"}
@@ -136,7 +137,7 @@ DFM_base %>%
     )
 ```
 
-In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis, persistence and half-life for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence---AR(1) with drift. The basic idea is to calculate an $F$ statistic---often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]---for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$, where $T$ is the total number of observations, and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9 testing the hypothesis that the coefficients are constant against the alternative that they have different values before and after the breakpoint, omitting the leading and trailing 15 \% of observations.] [@andrews:2003]. This modified Chow test is variously called the Quand Likelihood Ratio (QLR) statistic [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks see @hansen:2001. and for a general survey see @perron:2006]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression. Then, the two periods are choose following this methodology.
+In Table \@ref(tab:summary-table) I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis, persistence and half-life for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence---AR(1) with drift. The basic idea is to calculate an $F$ statistic---often called Chow statistic, named for its inventor, Gregory Chow [-@chow:1960]---for each conceivable breakpoint in the interval $\tau_{0} = 0.15T$ and $\tau_{1} = 0.85T$, where $T$ is the total number of observations, and reject the null hypothesis of structural stability if the largest of the resulting $F$ statistics exceeds a certain critical value^[That is to say, an $F$ statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9 testing the hypothesis that the coefficients are constant against the alternative that they have different values before and after the breakpoint, omitting the leading and trailing 15 \% of observations.] [@andrews:2003]. This modified Chow test is variously called the Quand Likelihood Ratio (QLR) statistic [@quandt:1960]^[For additional discussion of estimation and testing in the presence of discrete breaks see @hansen:2001 and for a general survey see @perron:2006]. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron [-@baiperr:1998;-@baiperr:2003]  established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression. Then, the two periods are choose following this methodology.
 
 The summary statistics in Table  \@ref(tab:summary-table) for the full period are misleading. For the first period of the sample the persistence is less that for the second period, so the time before a shock halve the distance to the stationary mean is smaller. Moreover, the distribution of the uncertainty index is different in location and shape for each period: the first part is slightly asymmetric and it has fewer outliers while the second part has more values above that below the mean and it has several values far from the mean. However, the similarity between both periods is substantial but the shock for the Great Recession in 2007--2009. Therefore, the level of uncertainty is continual in the economy which is related to the knightian framework.
 
@@ -344,9 +345,9 @@ matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
   )
 ```
 
-(ref:irf-baseline-plot) **Economic Dynamics Under Uncertainty in 11-variable VAR**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axes are in percentages but the federal funds rate is in basic points and employment is in number of employees. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:irf-baseline-plot) **Economic Dynamics Under Uncertainty in the eleven variable VAR**: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axes are in percentages but the federal funds rate is in basic points and employment is in number of employees. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r irf-baseline-plot, fig.asp = 1.4, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics under Uncertainty"}
+```{r irf-baseline-plot, fig.asp = 1.4, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics Under Uncertainty in the eleven variable VAR"}
 matrix_irf %>%
   filter(Variable %in% c(
     "Production",
@@ -438,9 +439,9 @@ fevd_tibble %<>%
   arrange(N)
 ```
 
-(ref:fevd-plot) **Forecast Error Variance Decomposition in 11-variables VAR**: The figure shows the percentage of variance of the $h$-step-ahead forecast error due to a shocks of each variable, for $h = 1, \ldots, 60$.
+(ref:fevd-plot) **Forecast Error Variance Decomposition in the eleven variables VAR**: The figure shows the percentage of variance of the $h$-step-ahead forecast error due to a shocks of each variable, for $h = 1, \ldots, 60$.
 
-```{r fevd-plot, fig.asp = 1.7, fig.cap = "(ref:fevd-plot)", fig.scap = "Forecast Error Variance Decomposition for in 11-variables VAR"}
+```{r fevd-plot, fig.asp = 1.7, fig.cap = "(ref:fevd-plot)", fig.scap = "Forecast Error Variance Decomposition in the eleven variables VAR"}
 fevd_tibble %>%
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
@@ -506,6 +507,91 @@ knitr::kable(
   , booktabs = TRUE
   , linesep = ""
 )
+```
+
+```{r irf_R}
+irf_R <- irf(
+  VAR_baseline,
+  impulse = "FederalFundsRate_lin_cycle",
+  response = "NAM",
+  n.ahead = 60,
+  runs = 100,
+  ci = 0.86
+)
+```
+
+```{r irf_R_matrix}
+irf_R_matrix <- tibble(
+  Months = 0:60,
+  Response = as.vector(irf_R[["irf"]][["FederalFundsRate_lin_cycle"]]),
+  R_lower = as.vector(irf_R[["Lower"]][["FederalFundsRate_lin_cycle"]]),
+  R_upper = as.vector(irf_R[["Upper"]][["FederalFundsRate_lin_cycle"]]),
+)
+```
+
+```{r}
+fevd_NAM <- as_tibble(fevd_baseline[["NAM"]])
+
+fevd_NAM %<>% 
+  rename(
+    Production = Production_all_log_cycle,
+    Employment = Employment_all_lin_cycle,
+    Consumption = Consumption_log_cycle,
+    Inflation = Inflation_cycle,
+    `New Orders` = NewOrders_log_cycle,
+    Wages = Wages_all_log_cycle,
+    Labor = Labor_all_lin_cycle,
+    `Federal Funds Rate` = FederalFundsRate_lin_cycle,
+    `Stock Market Index` = StockMarketIndex_log_cycle,
+    `Growth Rate of M2` = M2_cca_cycle,
+    `Non-Asset-Market Uncertainty` = NAM
+  ) %>% 
+  mutate(N = row_number()) %>% 
+  gather(
+    Production:`Non-Asset-Market Uncertainty`, 
+    key = "Variable", 
+    value = "Percentage"
+  ) %>% 
+  mutate(Variable = factor(Variable, levels = unique(Variable))) %>%
+  arrange(N)
+```
+
+(ref:R-plot) **Dynamics of Policy Intervention and Uncertainty in the eleven variable VAR**: The Figure shows the reaction of uncertainty to an unexpected loosening of monetary policy (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in units. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+
+```{r R-plot, fig.cap = "(ref:R-plot)", fig.scap = "Dynamics of Policy Intervention and Uncertainty in the eleven variable VAR"}
+irf_R_matrix %>%
+  ggplot(aes(Months, Response)) +
+    geom_hline(aes(yintercept = 0), size = 0.125) +
+    geom_ribbon(
+      aes(ymin = R_lower, ymax = R_upper),
+      fill = "steelblue",
+      alpha = 0.125
+    ) +
+    geom_line(colour = "steelblue", linetype = "dashed") +
+    scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Months after the shock",
+      y = "Impact"
+    ) 
+```
+
+(ref:R-fevd-plot) **Forecast Error Variance Descomposition for Uncertainty in the Eleven Variable VAR**: The figure shows the fractions of the forecast error variance due to loosening of monetary policy. The estimation period runs from January 1985 to July 2017. 
+
+```{r R-fevd-plot, fig.cap = "(ref:R-fevd-plot)", fig.scap = "Forecast Error Variance Descomposition for Uncertainty in the Eleven Variable VAR"}
+
+fevd_NAM %>%
+  ggplot(aes(N, Percentage)) +
+    geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.20), labels = percent) +
+    scale_x_continuous(breaks = c(1, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60)) +
+    scale_fill_viridis_d(option = "inferno") +
+    labs(
+      caption = "Source: Own calculations",
+      x = "Horizon",
+      y = "",
+      fill = ""
+    )
 ```
 
 ## Forecasting {#forecasting}

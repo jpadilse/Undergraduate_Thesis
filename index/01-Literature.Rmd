@@ -21,9 +21,6 @@
 - @alticrisfornlippvero:2010
 - @stocwats:1990
 
-### Number of factors
-
-- @baing:2002
 
 ## VAR-ref
 
