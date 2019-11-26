@@ -1,32 +1,35 @@
 # Data {#data}
 
-## Source {#source}
+In this section I show the sources used for retrieve the data necessary for the analysis carried out in [Sources]. Then, I check the lack of seasonality for each series in [Seasonality]. Lastly, I describe the transformations done to each series in [Transformations].
 
-In the empirical exercise I use uncertainty indexes from distinct sources for the USA economy. Specifically, the index are (following the non-asset-market indexes proposed in @dattlondsunbeltferriacojahaligiudroge:2017):
+## Sources {#sources}
 
-- The Economic Policy Uncertainty Index (EPU) developed by @bakebloodavi:2016. This Index is available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>. 
-- The Monetary Policy Uncertainty Index (MPU) developed by @bakebloodavi:2016; henceforth BBD U.S. MPU. This Index is available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>. Likewise, the authors construct two variants  of them monthly MPU Index for the United States by using two different sets of newspapers.
-- The Monetary Policy Uncertainty Index (MPU) developed by @hustrogesun:2019.
-- The Geopolitical Risk Index developed by @caldiaco:2018.
-- The macroeconomic uncertainty index developed by @juraludvng:2015.
+For the construction of the non-asset-market uncertainty index I use uncertainty indices from distinct sources for the U.S. economy. Specifically, the indices are (following the order proposed in @dattlondsunbeltferriacojahaligiudroge:2017, as discussed in [Empirical Measures of Uncertainty]):
 
-In [Estimates on the Impact of Non--Asset-Market Uncertainty Shocks] I estimate a vector auto-regressive model. The data for this exercise were taken from the Federal Reserve Bank of Saint Louis (FRED: <https://fred.stlouisfed.org/>), Yahoo Finance (<https://finance.yahoo.com/>) and Quandl (<https://www.quandl.com/>) webpages through the API of each of them. Specifically, I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance. 
+- The two variants of economic policy uncertainty index and the two variants of monetary policy uncertainty index from @bakebloodavi:2016. These indices are available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>.
+- The monetary policy uncertainty Index developed by @hustrogesun:2019. This index is available from January 1985 through July 2017 in the website <https://www.policyuncertainty.com>.
+- The indices of geopolitical risk developed by @caldiaco:2018. Specifically, the benchmark geopolitical risk index, the geopolitical acts index and the geopolitical threats index. These indices are available from January 1985 through November 2019 in the website <https://www.policyuncertainty.com>.
+- The macroeconomic, financial and real uncertainty indices developed by @juraludvng:2015 and @ludvmang:2015 at all horizons. These indices are available from July 1960 through June 2019 in one of the authors website <https://www.sydneyludvigson.com/data-and-appendixes>.
 
-Also, I estimate a model for manufacturing sector in [Eight-variable VAR]. In detail, I use the industrial production index in manufacturing known as NAICS in 2012 prices, total number of employees in manufacturing in thousand of persons, average weekly hours of production and non-supervisory employees in manufacturing in hours, consumer price index (all urban consumers) in 1982-1984 prices, average hourly earnings of production and non-supervisory employees in manufacturing from FRED, and the federal funds rate and Standard and Poor's 500 index defined as above. Finally, the sample spans from January 1985 to July 2017, which is the longest period possible using these series.
+In [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks] I estimate several VAR models. The data for these exercises were taken from the Federal Reserve Bank of Saint Louis (FRED: <https://fred.stlouisfed.org/>), Yahoo Finance (<https://finance.yahoo.com/>) and Quandl (<https://www.quandl.com/>) webpages through the API of each of them. Specifically, for the eleven-variable VAR I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance. 
+
+In addition, I estimate several models for the manufacturing sector in [Robustness]. In detail, I use the industrial production index in manufacturing sector known as NAICS in 2012 prices, the total number of employees in manufacturing sector in thousand of persons, average weekly hours of production and non-supervisory employees in manufacturing sector in hours, consumer price index (all urban consumers) in 1982--1984 prices, average hourly earnings of production and non-supervisory employees in manufacturing sector from FRED, and the federal funds rate and Standard and Poor's 500 index as defined in the previous paragraph. 
+
+The sample spans from January 1985 to July 2017, which is the longest period possible using these series---the uncertainty measures and the macroeconomic and financial variables. This sample spans gives a total of $T = 391$ observations.
 
 ## Seasonality {#seasonality}
 
-All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but them doesn't exhibit apparent seasonal components. Nevertheless, it is good practice to verify that the series are indeed free of seasonality [@kililutk:2017]. Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VARs models.
+All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but them doesn't exhibit apparent seasonal components. Nevertheless, it is good practice to verify that the series are indeed free of seasonality [@kililutk:2017]. Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VAR model in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks].
 
 ## Transformations {#transformations}
 
 ### Basic {#basic}
 
-All series of which units are measured in prices need to be given the $100 \times \log()$ treatment but the M2 money stock which enter as continuously compounded annual rate of change ($1200 \ln(\frac{M_{t}}{M_{t - 1}})$, donde $M_{t}$ is the M2 money stock). Likewise, the inflation serie is computed as $1200 \ln(\frac{P_{t}}{P_{t - 1}})$, where $P_{t}$ is the price index.
+All series of which units are measured in prices need to be given the $100 \times \log()$ treatment. On the other hand, the M2 money stock enter as continuously compounded annual rate of change---$1200 \times \ln(\frac{M_{t}}{M_{t - 1}})$, where $M_{t}$ is the M2 money stock. Likewise, the inflation series is computed as $1200 \times \ln(\frac{P_{t}}{P_{t - 1}})$, where $P_{t}$ is the price index.
 
 ### Detrend {#detrend}
 
-For detrend the variables was used the alternative proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggest to be a look-ahead period of two years which with monthly data are 24 time stamps. In summary, the model fitted to each series is an auto-regressive AR(12) model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
+Since stochastic trends in economic time series variables pose problems for regression analysis (see @stocwats:1988 for additional discussion) it is necessary detrend the variables. For this was used the alternative methodology proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggest to be a look-ahead period of two years which with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
 
 \begin{equation}
   y_{t+24} = \beta_{0} + \beta_{1}y_{t} + \beta_{2}y_{t - 1} + \cdots + \beta_{8}y_{t - 7} + v_{t + 24}
@@ -40,4 +43,4 @@ Which can be rewritten as:
   (\#eq:hamilton-final)
 \end{equation}
 
-Therefore, all variables are detrended with Hamilton method in the baseline estimations.
+Therefore, all macroeconomic and financial variables are detrended with the Hamilton method for the following sections.
