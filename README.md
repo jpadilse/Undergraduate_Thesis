@@ -1,3 +1,47 @@
-# Undergraduate Thesis
 
-This is the repository for the bachelor's thesis of undergraduate economics from the Universidad del Valle in Cali, Colombia.
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+This is the repository for the bachelor’s thesis of undergraduate
+economics from the Universidad del Valle in Cali, Colombia.
+
+# Reproducibility
+
+Looking for the reproducibility of the main results in the text I save
+all files and scripts in a Github repository
+<https://github.com/jpadilse/Undergraduate_Thesis>. This allows
+replicate each model, graph and table of the document without any
+necessary modification. Henceforth, the steps for doing this are:
+
+## Repository structure
+
+This repository has the following structure:
+
+  - index: Thesis chapters as Rmd’s.
+  - \_book: Formatted thesis (pdf).
+
+See individual chapter text and Rmd documents for additional
+reproducibility information.
+
+## Data
+
+All chapters can be built using the data available in this repository.
+
+## Manual install
+
+  - Install R (analysis run with 3.6.0) and Rstudio.
+  - Download the folder from
+    <https://github.com/jpadilse/Undergraduate_Thesis/archive/master.zip>
+    or use git clone, as follows, in the command line (not the R
+    terminal).
+
+> `git clone https://github.com/jpadilse/Undergraduate_Thesis.git`
+
+  - Once this has been downloaded click on the project file
+    (Undergraduate\_Thesis.Rproj).
+
+  - If latex is not installed use the following.
+
+> `tinytex::install_tinytex()`
+
+  - See the individual repositories for each chapter for full
+    reproducibility details.
