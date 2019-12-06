@@ -203,7 +203,7 @@ kable(
 
 ## Correlation with Other Uncertainty indices {#correlation-with-uncertainty-indices}
 
-```{r corr_indices, message = FALSE}
+```{r corr_indices, message = FALSE, warning = FALSE}
 corr_indices <- cor(
   uncertainty_indices %>%
     inner_join(DFM_base) %>% 
@@ -391,7 +391,7 @@ The Figure \@ref(fig:fevd-plot) shows the forecast error variance decomposition 
 
 One important question to resolver is if monetary policy interventions have effect on uncertainty. The Figure \@ref(fig:fevd-plot) shows the reaction of uncertainty to an unexpected loosening of monetary policy; it can be see that there not a significant effect. That is to say, an expansionary monetary policy does not have sizable impact on uncertainty. In the same way, the forecast error of the uncertainty series is minimally explained by an uncertainty shock (see Figure \@ref(fig:R-fevd-plot)). These findings are contrary to the documented in @bekahoerduca:2013 and @chulguilurib:2017, which reports significant effects, and add to the research field by exploring the relationship between policy intervention and uncertainty.
 
-```{r fevd, warning = FALSE}
+```{r fevd, warning = FALSE, message = FALSE}
 fevd_baseline <- fevd(VAR_baseline, 60)
 ```
 
