@@ -7,7 +7,6 @@ rmd_files:
     - "03-Data.Rmd"
     - "04-Results.Rmd"
     - "05-Conclusion.Rmd"
-    - "06-Appendix.Rmd"
     - "99-References.Rmd"
 download: [["thesis.pdf", "PDF"], ["thesis.docx", "Word"]]
 delete_merged_file: true

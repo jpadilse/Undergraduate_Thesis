@@ -74,7 +74,7 @@
 \title{Non-Asset-Market Uncertainty}
 \author{Juan Felipe Padilla Sepúlveda}
 % The month and year that you submit your FINAL draft TO THE LIBRARY (May or December)
-\date{November 2019}
+\date{December 2019}
 \division{Social and Economic Sciences}
 \advisor{Jorge Mario Uribe Gil}
 \institution{Universidad del Valle}
@@ -130,9 +130,27 @@
 }
 
 \Abstract{
-I propose a monthly index of non-asset-market uncertainty. The index is constructed through a approximate dynamic factor model with several main uncertainty indexes as data. This strategy considerably reduces extreme movements in the level of uncertainty, which is more appealing with theory. Likewise, I compare the new index with indicators of uncertainty and estimate the impact of an uncertainty shock on the dynamics of macroeconomic variables.
+I propose a monthly index of non-asset-market uncertainty. The index is constructed through a approximate dynamic factor model with several main uncertainty indices as data. This strategy reduces extreme movements in the level of uncertainty, which is more appealing with theory. Likewise, I compare the new index with indicators of uncertainty and estimate the impact of an uncertainty shock on the dynamics of macroeconomic and financial variables.
 }
 
+	\usepackage{booktabs}
+	\usepackage{longtable}
+	\usepackage{array}
+	\usepackage{multirow}
+	\usepackage{wrapfig}
+	\usepackage{float}
+	\usepackage{colortbl}
+	\usepackage{pdflscape}
+	\usepackage{tabu}
+	\usepackage{threeparttable}
+	\usepackage{threeparttablex}
+	\usepackage[normalem]{ulem}
+	\usepackage{makecell}
+	\usepackage{xcolor}
+	\usepackage{caption}
+	\captionsetup[figure]{font=small}
+	\captionsetup[table]{font=small}
+	\DeclareMathOperator{\diag}{diag}
 % End of CII addition
 %%
 %% End Preamble
@@ -156,134 +174,200 @@ I propose a monthly index of non-asset-market uncertainty. The index is construc
 
   \listoffigures
   \begin{abstract}
-    I propose a monthly index of non-asset-market uncertainty. The index is constructed through a approximate dynamic factor model with several main uncertainty indexes as data. This strategy considerably reduces extreme movements in the level of uncertainty, which is more appealing with theory. Likewise, I compare the new index with indicators of uncertainty and estimate the impact of an uncertainty shock on the dynamics of macroeconomic variables.
+    I propose a monthly index of non-asset-market uncertainty. The index is constructed through a approximate dynamic factor model with several main uncertainty indices as data. This strategy reduces extreme movements in the level of uncertainty, which is more appealing with theory. Likewise, I compare the new index with indicators of uncertainty and estimate the impact of an uncertainty shock on the dynamics of macroeconomic and financial variables.
   \end{abstract}
 
 \mainmatter % here the regular arabic numbering starts
 \pagestyle{fancyplain} % turns page numbering back on
 
-\hypertarget{preliminary}{%
-\chapter{Preliminary}\label{preliminary}}
-
 \hypertarget{introduction}{%
 \chapter*{Introduction}\label{introduction}}
 \addcontentsline{toc}{chapter}{Introduction}
 
-\hypertarget{raw-references}{%
-\chapter{Raw references}\label{raw-references}}
+Uncertainty has been a primary concern in economics and sciences in general. Principally, since has been separated from risk (Knight, \protect\hyperlink{ref-knight:2014}{2014}). The distinction between risk and uncertainty is that the former can be described by a distribution function with the associated probability for each possibly outcome---where each possible outcome is known---while the latter can not be characterized in this terms. This distinction between the concepts is so important for economy that Bernstein (\protect\hyperlink{ref-bernstein:1998}{1998}) said it divided the history, i.e., the mastering of both phenomena mark a break in study of sciences.
+
+Although the interpretation of uncertainty developed by knight make him intractable in empirical studies, the current state of economics has move to an amenable concept. That is, the time-varying conditional second moment of the series under study which is related with structural shocks such as terrorist attacks, political events, economic crises, wars and credit crunches.
+
+From Datta et al. (\protect\hyperlink{ref-dattlondsunbeltferriacojahaligiudroge:2017}{2017}) it becomes clear that there are currently many measures of uncertainty and each of them is used by different market agents and professionals to measure uncertainty without being sure about which one is the best. Since each one captures different movements, it is necessary to build an index following the existing ones as a way to use as much information as possible. Henceforth, this document seek to make three main contributions to the study of uncertainty. First, I develop a non-asset-market uncertainty index\footnote{The monthly index is available on: \url{https://github.com/jpadilse/Undergraduate_Thesis/tree/master/index/Data/Output/Non-Asset-Market.csv}}---following as convention the name of the category under which Datta et al. (\protect\hyperlink{ref-dattlondsunbeltferriacojahaligiudroge:2017}{2017}) classifies a set of uncertainty indices. This index has the property of summarize the common comovements share between the several uncertainty indices developed so far in the literature, i.e., capture all the relevant information in the economy as a whole. Second, I analyze the dynamic relationship between uncertainty and real and financial variables in the economy. This allows understand the role of uncertainty inside the economy and the dynamics that rule there in. For instance, I document a negative relationship between uncertainty and real and financial variables. Finally, I show how the non-asset-market uncertainty index is more appealing theoretically because of less volatility---problem of newspapers-based uncertainty measures---and less extreme correlation with recession dates---problem of econometric measures of uncertainty. This thesis is also available as a pdf\footnote{PDF: \url{https://github.com/jpadilse/Undergraduate_Thesis/blob/master/index/_book/Thesis.pdf}} and a reproducible Rmarkdown document\footnote{Rmarkdown: \url{https://github.com/jpadilse/Undergraduate_Thesis}}.
+
+The rest of this document is organized as follows. First of all, I review theoretical and empirical studies of uncertainty in \protect\hyperlink{literature}{Literature}. Second, I describe the methodology used to estimate the uncertainty index that is a approximate dynamic factor model in \protect\hyperlink{methodology}{Methodology}. Then, I present the data used and the transformations made to them in \protect\hyperlink{data}{Data}. Lastly, I show the main effects in \protect\hyperlink{results}{Results} which contains the index proposed and its relation with the United States' economy.
+
+\hypertarget{literature}{%
+\chapter{Literature}\label{literature}}
+
+In this chapter I review the role of risk and uncertainty in \protect\hyperlink{risk-and-uncertainty}{Risk and Uncertainty}. Then, I documented the history of index construction in macroeconomics in \protect\hyperlink{history-of-indices-construction}{History of indices construction}. Finally, I show the main uncertainty indices in the field---which use some of the methodologies exposed in the previous subsection---in \protect\hyperlink{empirical-measures-of-uncertainty}{Empirical Measures of Uncertainty}.
+
+\hypertarget{risk-and-uncertainty}{%
+\section{Risk and Uncertainty}\label{risk-and-uncertainty}}
+
+First of all, the uncertainty has been put inside a framework of irreversible investment, i.e., for future investment opportunities is cautious to wait until the uncertainty levels have passed. Therefore, aggregate uncertainty shocks affect investments, labor and in general reducing the real activity (Bernanke, \protect\hyperlink{ref-bernanke:1983}{1983}). Moreover, Romer (\protect\hyperlink{ref-romer:1990}{1990}) showed that consumers postpone their acquisition of durable goods in periods of high uncertainty. In addition, Bansal \& Yaron (\protect\hyperlink{ref-bansyaro:2004}{2004}) declares that the uncertainty results in reduction of equity prices through the reduction of long-run growth in the economy.
+
+Bekaert, Hoerova, \& Duca (\protect\hyperlink{ref-bekahoerduca:2013}{2013}) study the relationship between uncertainty and policy interventions. The authors concludes that uncertainty has an important role in the transmission of monetary policy mechanisms. This marks the question if facing uncertainty requires considerable policy action or not.
+
+\hypertarget{history-of-indices-construction}{%
+\section{History of Indices Construction}\label{history-of-indices-construction}}
+
+The DFM allows to resolve a classic problem in empirical macroeconomics, that is, the construction of an index of indicators of economic activity. In the DFM framework, the latent factor summarizes the comovements of the observed variables. Hence, the estimate of a latent factor from a single DFM is an index of the movements of the relevant series.
+
+The first application of DFMs for monitoring the economy was the Stock \& Watson (\protect\hyperlink{ref-stocwats:1991}{1991}) experimental coincident index (XCI), which was active between May 1989 to December 2003. This index was the result from the Kalman filter estimate of one single factor among four monthly coincident indices: total nonfarm employment, the index of industrial production, real manufacturing and trade sales, and real personal income less transfers. Stock \& Watson (\protect\hyperlink{ref-stocwats:1993}{1993}) shown that in retrospective analysis,the XCI was successful in contemporaneous monitoring and in real-time detection of the recession of 1990 although only less that six months before the recession.
+
+After the start of using DFMs for index construction were estimated subsequent indices through state-space models. First, monthly real activity indices for US states (Crone \& Clayton-Matthews, \protect\hyperlink{ref-cronclay:2005}{2005})---that are active from 2005. Second, the inclusion of mixed-frequency series to the XCI in Mariano \& Murasawa (\protect\hyperlink{ref-marimura:2003}{2003}). Third, Aruoba, Diebold, \& Scotti (\protect\hyperlink{ref-aruodiebscot:2009}{2009}) developed a mixed-frequency index for economic conditions so-called ADS. In contrast, recent studies has focused in large dimensional systems. Stock \& Watson (\protect\hyperlink{ref-stocwats:1999}{1999}) constructed the base for the Chicago Fed National Activity Index (CFNAI), that is the principal components estimate of the common factor in 85 real activity variables. Finally, an European Union real economy activity index---named EuroCOIN---based on 145 Euro-area real activity variables was developed by Altissimo, Cristadoro, Forni, Lippi, \& Veronese (\protect\hyperlink{ref-alticrisfornlippvero:2010}{2010}).
+
+\hypertarget{empirical-measures-of-uncertainty}{%
+\section{Empirical Measures of Uncertainty}\label{empirical-measures-of-uncertainty}}
+
+Different measures of uncertainty and proxies of this have being proposed in the literature. Nevertheless, the classification used to describe these indices in this document will be the underlying outcome, i.e., asset price or macroeconomic variable. Hence, the allegedly uncertainty measures are divided as non-asset-market and asset-market. In this document are considered the non-asset-market measures because these are the base for the index proposed\footnote{This decision left out studies based on microeconomic information such as the cross-sectional dispersion of ﬁrms' proﬁts (Bloom, \protect\hyperlink{ref-bloom:2009}{2009}) and estimated time-varying productivity (Bloom, Floetotto, Jaimovich, Saporta-Eksten, \& Terry, \protect\hyperlink{ref-bloofloejaimsapoterr:2018}{2018}.)}.
+
+The first indicator in this category is the economic policy uncertainty index developed by Baker, Bloom, \& Davis (\protect\hyperlink{ref-bakebloodavi:2016}{2016}) which is based on three underlying components: news-coverage about policy-related economic uncertainty, tax expiration code data and economic forecaster disagreement. The first component is an index of search results from 10 major U.S. newspapers for articles that contain terms related to economic and policy uncertainty. The second component gauges uncertainty regarding the federal tax code---through reports from the Congressional Budget Office (CBO)---by counting the number of federal tax code provisions set to expire in future years. The third component relies on disagreement between professional forecasters---through the Federal Reserve Bank of Philadelphia's Survey of Professional Forecasters---as an indicator of uncertainty. Moreover, the authors have developed a new economic policy uncertainty index based on newspaper archives from Access World New's NewsBank service which contains the archives of thousands of newspapers from across the globe. Finally, the authors also have a subindice for monetary policy---for each source, that is, one index draw from a balanced panel of 10 major national and regional U.S. newspapers and the other one from hundreds of U.S. newspapers covered by Access World News---that contains additional terms relevant to monetary policy.
+
+In the same vein as last authors it is the monetary policy uncertainty index from Husted, Rogers, \& Sun (\protect\hyperlink{ref-hustrogesun:2019}{2019}). This newspaper-based index search for keywords related to monetary policy uncertainty---related to the United States---in the New York Times, Wall Street Journal and Washington Post. Then, scale the count by the total number of news articles mentioning the Federal Reserve for each newspaper in a given period. In short, the index measures the perceived uncertainty surrounding the Federal Reserve Board's policy decisions and their consequences.
+
+On the other hand, Caldara \& Iacoviello (\protect\hyperlink{ref-caldiaco:2018}{2018}) proposed a geopolitical risk index counting the occurrence of words related to geopolitical tensions in eleven leading international newspapers. In other words, the index measures the risk associated with events that affect the normal course of domestic politics and international relations. The authors also have proposed two indices more for distinguish geopolitical acts and geopolitical threats.
+
+Scotti (\protect\hyperlink{ref-scotti:2016}{2016}) uses macroeconomic news and survey forecast to construct a measure of uncertainty about the state of the economy. The author's macroeconomic uncertainty index is based on a weighted average of economic data surprises, where the latter are the difference between consensus expectations and economic data releases.
+
+Lastly, Jurado, Ludvigson, \& Ng (\protect\hyperlink{ref-juraludvng:2015}{2015}) and Ludvigson, Ma, \& Ng (\protect\hyperlink{ref-ludvmang:2015}{2015}) developed a macroeconomic, financial and real uncertainty index of uncertainty. These measures are based on removing the forecastable component of the series. In brief, the uncertainty can be constructed as an weighted average of the forecast error variance of hundreds of economic series.
+
+\hypertarget{methodology}{%
+\chapter{Methodology}\label{methodology}}
+
+For the construction of the non-asset-market uncertainty index is necessary capture the common comovements in the series for which is used a dynamic factor model that is described in \protect\hyperlink{dynamic-factor-model}{Dynamic factor model}.
+
+\hypertarget{dynamic-factor-model}{%
+\section{Dynamic Factor Model}\label{dynamic-factor-model}}
+
+Following Stock \& Watson (\protect\hyperlink{ref-stocwats:2016}{2016}), the DFM represents the evolution of a vector of \(N\) observed time series, \(X_{t}\), in terms of a reduced number of unobserved common factors which evolve over time, plus uncorrelated disturbances which represent measurement error and/or idiosyncratic dynamics of the individual series. Throughout this chapter, we use lag operator, so that \(a(L) = \sum_{i = 0}^{\infty} a_{i}L^{i}\), where \(L\) is the lag operator, and \(a(L)X_{t} = \sum_{i = 0}^{\infty} a_{i}X_{t - i}\).
+
+One form of write the model is its dynamic form which take into account the serial dependence in the data, i.e., represents the dependence of \(X_{t}\) on lags of the factors explicitly.
+
+\hypertarget{dynamic-form-of-the-dfm}{%
+\subsection{Dynamic Form of the DFM}\label{dynamic-form-of-the-dfm}}
+
+The DFM expresses a \(N \times 1\) vector \(X_{t}\) of observed time series variables as depending on a reduced number \(q\) of unobserved or latent factors \(f_{t}\) and a mean-zero idiosyncratic component \(e_{t}\). The DFM is,
+\begin{eqnarray}
+  X_{t} & = & \lambda (L) f_{t} + e_{t} \label{eq:common}
+  \\
+  f_{t} & = & \Psi (L) f_{t} + \eta_{t} \label{eq:evolve}
+\end{eqnarray}
+where \(X_{t} \stackrel{iid}{\sim} (0, \sum_{x})\) and the lag polynomial matrices \(\lambda(L)\) and \(\Psi(L)\) are \(N \times q\) and \(q \times q\), respectively. Also, \(\eta_{t}\) is the \(q \times 1\) vector of (serially uncorrelated) mean-zero innovations to the factors such that the factor innovations and the idiosyncratic disturbances are assumed to be orthogonal , i.e., \(\mathbb{E}(e_{t}\eta_{s}') = 0 ~ \forall ~ t, s\). The \(i\)th row of \(\lambda(L)\), the lag polynomial \(\lambda_{i}(L)\), is called the dynamic factor loading for the \(i\)th series, \(X_{it}\). The term \(\lambda_{i}(L)f_{t}\) in \eqref{eq:common} is the \emph{common component} of the \(i\)th series. Because in the basic model \eqref{eq:common} the observed variables are assumed to have mean zero the uncertainty indices in \protect\hyperlink{data}{Data} are transformed prior to the analysis.
+
+If the idiosyncratic disturbance \(e_{t}\) in \eqref{eq:common} is serially correlated the models \eqref{eq:common} and \eqref{eq:evolve} are incompletely specified. Chamberlain \& Rothschild (\protect\hyperlink{ref-chamroth:1983}{1983}) \emph{approximate factor model} allows for such correlation.
+
+\hypertarget{static-stacked-form-of-the-dfm}{%
+\subsection{Static (Stacked) Form of the DFM}\label{static-stacked-form-of-the-dfm}}
+
+The \emph{static}, or \emph{stacked}, form of the DFM rewrites the dynamic form \eqref{eq:common} and \eqref{eq:evolve} to depend on \(r\) \emph{static factors} \(F_{t}\) instead of the \(q\) dynamic factors \(f_{t}\), where \(r \geq q\). This rewriting makes the model amenable to principal component analysis.
+
+Let \(p\) be the degree of the lag polynomial matrix \(\lambda(L)\) and let \(F_{t} = (f_{t}', f_{t - 1}', \ldots, f_{t - p}')'\) denote an \(r \times 1\) vector of \emph{static} factors ---in contrast to the shorter vector of \emph{dynamic} factors \(f_{t}\). Also let \(\Lambda = c(\lambda_{0}, \lambda_{1}, \ldots, \lambda_{p})\), where \(\lambda_{h}\) is the \(N \times q\) matrix of coefficients on the \(h\)th lag in \(\lambda(L)\). Similarly, let \(\Phi(L)\) be the matrix consisting of \(1\)s, \(0\)s, and the elements of \(\Psi(L)\) such that the vector autoregression in \eqref{eq:common} is rewritten in terms of \(F_{t}\). With this notation the DFM \eqref{eq:common} and \eqref{eq:evolve} can be rewritten,
+\begin{eqnarray}
+  X_{t} & = & \Lambda F_{t} + e_{t} \label{eq:common-stack}
+  \\
+  F_{t} & = & \Phi(L) F_{t - 1} + G \eta_{t} \label{eq:evolve-stack} 
+\end{eqnarray}
+where
+\begin{equation*}
+  \Phi = 
+  \begin{bmatrix}
+    \Psi_{1} & \Psi_{2} & \ldots & \Psi_{p} & \Psi_{p + 1} \\
+    I_{q} & 0 & \ldots & 0 & 0 \\
+    0 & I_{q} & \ldots & 0 & 0 \\
+    \vdots & \vdots & \ddots & \vdots & \vdots \\
+    0 & 0 & \ldots & I_{q} & 0
+  \end{bmatrix}_{r \times r} \qquad
+  \text{and} \qquad
+  G = 
+  \begin{bmatrix}
+    I_{q} \\
+    0
+  \end{bmatrix}_{r \times q}
+\end{equation*}
+\hypertarget{normalization-of-the-factors}{%
+\subsection{Normalization of the Factors}\label{normalization-of-the-factors}}
+
+Because the factors are unobserved, they are identified only up to arbitrary normalizations. Exact identification of the factor model can be ensured with the principal components normalization ---Bai \& Ng (\protect\hyperlink{ref-baing:2013}{2013}) refer to this normalization as the PC1 normalization--- where the columns of \(\Lambda\) are orthonormal:
+\begin{equation}
+  N^{-1} \Lambda' \Lambda = I_{r} \label{eq:normalization}
+\end{equation}
+and choosing the factors such that \(\sum_{F} = \mathbb{E}(F_{t}F_{t}')\) is a diagonal matrix with distinct diagonal elements in decreasing order. In other words, the first factor has the largest variance and, hence, explains the largest part of the variance of \(X_{t}\) among the common factors. The second factor, has the second largest variance, and so on. These conditions are sufficient to guarantee identification of \(\Lambda\) but only up to the sign of its columns.
+
+\hypertarget{estimation-of-the-factors-and-dfm-parameters}{%
+\subsection{Estimation of the Factors and DFM Parameters}\label{estimation-of-the-factors-and-dfm-parameters}}
+
+The parameters and factors of the DFM can be estimated using nonparametric methods related to principal components analysis or by parametric state-space methods.
+
+\hypertarget{nonparametric-methods-and-principal-components-estimation}{%
+\subsubsection{Nonparametric Methods and Principal Components Estimation}\label{nonparametric-methods-and-principal-components-estimation}}
+
+Nonparametric methods estimate the static factors in \eqref{eq:common-stack} directly without specifying a model for the factors or assuming specific distributions for the disturbances. These approaches use cross-sectional averaging to remove the influence of the idiosyncratic disturbances, leaving only the variation associated with the factors.
+
+Principal components minimize the variance of the idiosyncratic components, i.e., maximizing the part of the variance of the observed variables explained by the common factors in which \(\Lambda\) and \(F_{t}\) in \eqref{eq:common-stack} are treated as unknown parameters to be estimated:
+\begin{equation}
+  \min_{F_{1}, \ldots, F_{T}, \Lambda} V_{r}(\Lambda, F), \text{where } V_{r}(\Lambda, F) = \frac{1}{NT} \sum_{t = 1}^{T} (X_{t} - \Lambda F_{t})'(X_{t} - \Lambda F_{t}) \label{eq:pc}
+\end{equation}
+subject to the normalization \eqref{eq:normalization}. The solution to the least-squares problem in \eqref{eq:pc} is the principal components (PC) estimator of the factors, \(\hat{F}_{t} = N^{-1} \hat{\Lambda}' X_{t}\), where \(\hat{\Lambda}\) is the matrix of eigenvectors of the sample variance matrix of \(X_{t}\), \(\hat{\sum}_{X} = T^{-1} \sum_{t = 1}^{T} X_{t}X_{t}'\), associated with the \(r\) largest eigenvalues of \(\hat{\sum}_{X}\), and \(\hat {\sum}_{F} = T^{-1} \sum_{t = 1}^{T} \hat{F}_{t} \hat{F}_{t}' = \hat{\Lambda}' \hat{\sum}_{X} \hat{\Lambda} = \mathop\mathrm{diag}(\lambda_{1}, \ldots, \lambda_{r})\). The eigenvalues \(\lambda_{1}, \ldots, \lambda_{r}\) are the empirical variances of the factors with \(\lambda_{1}\) representing the variance of the principal component with the largest contribution to the variance of the data, \(\lambda_{2}\) represents the variance of the second-most important component, and so on. The properties of this estimator are well discussed in Stock \& Watson (\protect\hyperlink{ref-stocwats:2002}{2002}).
+
+\hypertarget{parametric-state-space-methods}{%
+\subsubsection{Parametric state-space methods}\label{parametric-state-space-methods}}
+
+State-space estimation entails specifying a full parametric model for \(X_{t}\), \(e_{t}\), and \(f_{t}\) in the dynamic form of the DFM, so that the likelihood can be computed.
+
+For parametric estimation, additional assumptions need to be made on the distribution of the errors and the dynamics of the idiosyncratic component \(e_{t}\) in the DFM. A simple and tractable model is to suppose that the \(i\)th idiosyncratic disturbance, \(e_{t}\), follows the univariate autoregression,
+\begin{equation}
+  e_{it} = \delta_{i} (L) e_{it - 1} + \nu_{it} \label{eq:ar}
+\end{equation}
+where \(\nu_{it}\) is serially uncorrelated. With the further assumptions that \(\nu_{it} \stackrel{iid}{\sim} \mathcal{N}(o, \sigma_{\nu_{i}}^{2})\) , \(i = 1, \ldots, N\), and \(\eta_{t} \stackrel{iid}{\sim} \mathcal{N}(0, \sum_{\eta})\), and \(\{\nu_{t}\}\) and \(\{\eta_{t}\}\) are independent, equations \eqref{eq:common}, \eqref{eq:evolve} and \eqref{eq:ar} constitute a complete linear state-space model.
+
+Given the parameters, the Kalman filter can be used to compute the likelihood and the Kalman smoother can be used to compute estimates of \(f_{t}\) given the full-sample data on \(\{X_{t}\}\). The likelihood can be maximized to obtain maximum likelihood estimates of the parameters. The fact that the state-space approach uses intertemporal smoothing to estimate the factors, whereas principal components approach use only contemporaneous smoothing (averaging across series at the same date) is an important difference between the methods.
+
+\hypertarget{hybrid-methods}{%
+\subsubsection{Hybrid methods}\label{hybrid-methods}}
+
+One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter (Doz, Giannone, \& Reichlin, \protect\hyperlink{ref-dozgianreic:2011}{2011}). In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate \(F_{t}\) by the Kalman filter.
+
+\hypertarget{var}{%
+\section{VAR}\label{var}}
 
 \hypertarget{lag-order}{%
-\section{lag order}\label{lag-order}}
-\begin{itemize}
-\tightlist
-\item
-  Paulsen \& Tjostheim (1985)
-\item
-  Gonzalo \& Pitarakis (2002)
-\item
-  Kilian (2001)
-\item
-  Ventzislav \& Lutz (2005)
-\item
-  Kilian (1998)
-\end{itemize}
-\hypertarget{fixed-lag}{%
-\section{fixed lag}\label{fixed-lag}}
-\begin{itemize}
-\tightlist
-\item
-  Leeb \& Pötscher (2005)
-\item
-  Leeb \& Pötscher (2006)
-\end{itemize}
-\hypertarget{dfm}{%
-\section{DFM}\label{dfm}}
+\subsection{Lag Order}\label{lag-order}}
 
-\hypertarget{estimation}{%
-\subsection{Estimation}\label{estimation}}
-\begin{itemize}
-\tightlist
-\item
-  Stock \& Watson (2016)
-\end{itemize}
-\hypertarget{number-of-factors}{%
-\subsection{Number of factors}\label{number-of-factors}}
-\begin{itemize}
-\tightlist
-\item
-  Bai \& Ng (2002)
-\end{itemize}
-\hypertarget{var-ref}{%
-\section{VAR-ref}\label{var-ref}}
-\begin{itemize}
-\tightlist
-\item
-  Stock \& Watson (2001)
-\item
-  Christiano, Eichenbaum, \& Evans (2005)
-\end{itemize}
-\hypertarget{index}{%
-\section{Index}\label{index}}
-\begin{itemize}
-\tightlist
-\item
-  Chuliá, Guillén, \& Uribe (2017)
-\end{itemize}
-\hypertarget{fan-chart}{%
-\section{Fan chart}\label{fan-chart}}
-\begin{itemize}
-\tightlist
-\item
-  Britton, Fisher, \& Whitley (1998)
-\item
-  Clements (2004)
-\end{itemize}
-\hypertarget{nowcasting}{%
-\section{Nowcasting}\label{nowcasting}}
-\begin{itemize}
-\tightlist
-\item
-  Giannone, Reichlin, \& Small (2008)
-\item
-  Bańbura \& Rünstler (2011)
-\item
-  BańBura, Giannone, \& Reichlin (2011)
-\end{itemize}
-\hypertarget{trends}{%
-\section{Trends}\label{trends}}
-\begin{itemize}
-\tightlist
-\item
-  Stock \& Watson (1988)
-\end{itemize}
+It is necessary to choose the lag-order \(p\) of the VAR models calculated in the next sections. First, defining the maximum lag order that is considered reasonable as \(p_{max}\) and the minimum lag order \(p_{min}\) set to zero one criterion is whether the lag-order estimator is consistent for the true lag-order \(p_{0}\) where the DGP is VAR(\(p_{0}\)), provided \(p_{min} \leq p_{0} \leq p_{max}\). The Schwarz Information Criterion (SIC) and the Hannan-Quin Criterion (HQC) are consistent for \(p_{0}\) in contrast to the Akaike Information Criterion (AIC) (Lütkepohl, \protect\hyperlink{ref-lutkepohl:2005}{2005}).
+
+On the other hand, it is worthy examine the finite sample properties of the lag-order estimators. Even if we grant the premise that \(p_{min} \leq p_{0} \leq p_{max}\), one may not want to overrate the importance of the lag-order estimator being consistent. The convergence of \(\hat{p}\) toward \(p_{0}\) can be very slow in practice, and in small samples consistent lag-order selection criteria tend to be strongly downbiased toward \(p_{min}\) (Kilian, \protect\hyperlink{ref-kilian:2001}{2001}). In small samples the distribution of the AIC lag-order estimates tends to be more balanced about the true lag order than for the remaining criteria (Kilian \& Lütkepohl, \protect\hyperlink{ref-kililutk:2017}{2017}). Likewise, because this study have no interest in the lag order of the process but impulse responses, forecast, and related statistics that can be written as smooth functions of VAR model parameters it is necessary assure that these statistics of interest can be consistently estimated. They are consistently estimated as long as the lag order is not underestimated asymptotically. Besides, the probability of the AIC overfitting the VAR model is negligible asymptotically (Paulsen \& Tjostheim, \protect\hyperlink{ref-paultjos:1985}{1985}). So efficiency lost is not a major concern.
+
+Furthermore, the MSE of the impulse-response estimates is lower for models estimated with lags selected by the AIC in contrast with more parsimonious criteria as SIC and HQC (Ventzislav \& Lutz, \protect\hyperlink{ref-ventlutz:2005}{2005}).
+
+Although the AIC seems to be the best option for select the lag order, Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}) questioned the inference using data-dependent lag-order selection procedure for VAR models. One alternative approach that avoids this problems is use models with fixed lags instead. As a result, fixed lag orders for all VAR models are used. Also, since the data is monthly the appropriate lag order is 12 months.
+
 \hypertarget{data}{%
 \chapter{Data}\label{data}}
 
-\hypertarget{source}{%
-\section{Source}\label{source}}
+In this section I show the sources used for retrieve the data necessary for the analysis carried out in \protect\hyperlink{sources}{Sources}. Then, I check the lack of seasonality for each series in \protect\hyperlink{seasonality}{Seasonality}. Lastly, I describe the transformations done to each series in \protect\hyperlink{transformations}{Transformations}.
 
-In the empirical exercise I use uncertainty indexes from distinct sources for the USA economy. Specifically, the index are (following the non-asset-market indexes proposed in Datta et al. (2017)):
+\hypertarget{sources}{%
+\section{Sources}\label{sources}}
+
+For the construction of the non-asset-market uncertainty index I use uncertainty indices from distinct sources for the U.S. economy. Specifically, the indices are (following the order proposed in Datta et al. (\protect\hyperlink{ref-dattlondsunbeltferriacojahaligiudroge:2017}{2017}), as discussed in \protect\hyperlink{empirical-measures-of-uncertainty}{Empirical Measures of Uncertainty}):
 \begin{itemize}
 \tightlist
 \item
-  The Economic Policy Uncertainty Index (EPU) developed by Baker, Bloom, \& Davis (2016). This Index is available from January 1985 through September 2019 in the authors website \url{https://www.policyuncertainty.com}.
+  The two variants of economic policy uncertainty index and the two variants of monetary policy uncertainty index from Baker et al. (\protect\hyperlink{ref-bakebloodavi:2016}{2016}). These indices are available from January 1985 through September 2019 in the authors website \url{https://www.policyuncertainty.com}.
 \item
-  The Monetary Policy Uncertainty Index (MPU) developed by Baker et al. (2016); henceforth BBD U.S. MPU. This Index is available from January 1985 through September 2019 in the authors website \url{https://www.policyuncertainty.com}. Likewise, the authors construct two variants of them monthly MPU Index for the United States by using two different sets of newspapers.
+  The monetary policy uncertainty Index developed by Husted et al. (\protect\hyperlink{ref-hustrogesun:2019}{2019}). This index is available from January 1985 through July 2017 in the website \url{https://www.policyuncertainty.com}.
 \item
-  The Monetary Policy Uncertainty Index (MPU) developed by Husted, Rogers, \& Sun (2019).
+  The indices of geopolitical risk developed by Caldara \& Iacoviello (\protect\hyperlink{ref-caldiaco:2018}{2018}). Specifically, the benchmark geopolitical risk index, the geopolitical acts index and the geopolitical threats index. These indices are available from January 1985 through November 2019 in the website \url{https://www.policyuncertainty.com}.
 \item
-  The Geopolitical Risk Index developed by Caldara \& Iacoviello (2018).
-\item
-  The macroeconomic uncertainty index developed by Jurado, Ludvigson, \& Ng (2015).
+  The macroeconomic, financial and real uncertainty indices developed by Jurado et al. (\protect\hyperlink{ref-juraludvng:2015}{2015}) and Ludvigson et al. (\protect\hyperlink{ref-ludvmang:2015}{2015}) at all horizons. These indices are available from July 1960 through June 2019 in one of the authors website \url{https://www.sydneyludvigson.com/data-and-appendixes}.
 \end{itemize}
-In {[}Estimates on the Impact of Non--Asset-Market Uncertainty Shocks{]} I estimate a vector auto-regressive model. The data for this exercise were taken from the Federal Reserve Bank of Saint Louis (FRED: \url{https://fred.stlouisfed.org/}), Yahoo Finance (\url{https://finance.yahoo.com/}) and Quandl (\url{https://www.quandl.com/}) webpages through the API of each of them. Specifically, I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance.
+In \protect\hyperlink{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks} I estimate several VAR models. The data for these exercises were taken from the Federal Reserve Bank of Saint Louis (FRED: \url{https://fred.stlouisfed.org/}), Yahoo Finance (\url{https://finance.yahoo.com/}) and Quandl (\url{https://www.quandl.com/}) webpages through the API of each of them. Specifically, for the eleven-variable VAR I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance.
 
-Also, I estimate a model for manufacturing sector in {[}Eight-variable VAR{]}. In detail, I use the industrial production index in manufacturing known as NAICS in 2012 prices, total number of employees in manufacturing in thousand of persons, average weekly hours of production and non-supervisory employees in manufacturing in hours, consumer price index (all urban consumers) in 1982-1984 prices, average hourly earnings of production and non-supervisory employees in manufacturing from FRED, and the federal funds rate and Standard and Poor's 500 index defined as above. Finally, the sample spans from January 1985 to July 2017, which is the longest period possible using these series.
+In addition, I estimate several models for the manufacturing sector in \protect\hyperlink{robustness}{Robustness}. In detail, I use the industrial production index in manufacturing sector known as NAICS in 2012 prices, the total number of employees in manufacturing sector in thousand of persons, average weekly hours of production and non-supervisory employees in manufacturing sector in hours, consumer price index (all urban consumers) in 1982--1984 prices, average hourly earnings of production and non-supervisory employees in manufacturing sector from FRED, and the federal funds rate and Standard and Poor's 500 index as defined in the previous paragraph.
+
+The sample spans from January 1985 to July 2017, which is the longest period possible using these series---the uncertainty measures and the macroeconomic and financial variables. This sample spans gives a total of \(T = 391\) observations.
 
 \hypertarget{seasonality}{%
 \section{Seasonality}\label{seasonality}}
 
-All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but them doesn't exhibit apparent seasonal components. Nevertheless, it is good practice to verify that the series are indeed free of seasonality (Kilian \& Lütkepohl, 2017). Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VARs models.
+All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but them doesn't exhibit apparent seasonal components. Nevertheless, it is good practice to verify that the series are indeed free of seasonality (Kilian \& Lütkepohl, \protect\hyperlink{ref-kililutk:2017}{2017}). Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VAR model in \protect\hyperlink{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}.
 
 \hypertarget{transformations}{%
 \section{Transformations}\label{transformations}}
@@ -291,12 +375,12 @@ All series were taken seasonally adjusted except the federal funds rate and the 
 \hypertarget{basic}{%
 \subsection{Basic}\label{basic}}
 
-All series of which units are measured in prices need to be given the \(100 \times \log()\) treatment but the M2 money stock which enter as continuously compounded annual rate of change (\(1200 \ln(\frac{M_{t}}{M_{t - 1}})\), donde \(M_{t}\) is the M2 money stock). Likewise, the inflation serie is computed as \(1200 \ln(\frac{P_{t}}{P_{t - 1}})\), where \(P_{t}\) is the price index.
+All series of which units are measured in prices need to be given the \(100 \times \log()\) treatment. On the other hand, the M2 money stock enter as continuously compounded annual rate of change---\(1200 \times \ln(\frac{M_{t}}{M_{t - 1}})\), where \(M_{t}\) is the M2 money stock. Likewise, the inflation series is computed as \(1200 \times \ln(\frac{P_{t}}{P_{t - 1}})\), where \(P_{t}\) is the price index.
 
 \hypertarget{detrend}{%
 \subsection{Detrend}\label{detrend}}
 
-For detrend the variables was used the alternative proposed by Hamilton (2018) which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date \(t + h\) on the twelve most recent values as of date \(t\)\footnote{The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).}. The \(h\) parameter is suggest to be a look-ahead period of two years which with monthly data are 24 time stamps. In summary, the model fitted to each series is an auto-regressive AR(12) model, dependent on \(t + 24\) look-ahead. This is expressed more concretely by:
+Since stochastic trends in economic time series variables pose problems for regression analysis (see Stock \& Watson (\protect\hyperlink{ref-stocwats:1988}{1988}) for additional discussion) it is necessary detrend the variables. For this was used the alternative methodology proposed by Hamilton (\protect\hyperlink{ref-hamilton:2018}{2018}) which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date \(t + h\) on the twelve most recent values as of date \(t\)\footnote{The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).}. The \(h\) parameter is suggest to be seen a period of two years in the future which with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on \(t + 24\) look-ahead. This is expressed more concretely by:
 \begin{equation}
   y_{t+24} = \beta_{0} + \beta_{1}y_{t} + \beta_{2}y_{t - 1} + \cdots + \beta_{8}y_{t - 7} + v_{t + 24}
   \label{eq:hamilton-basic}
@@ -306,118 +390,206 @@ Which can be rewritten as:
   y_{t} = \beta_{0} + \beta_{1}y_{t - 24} + \beta_{2}y_{t - 25} + \cdots + \beta_{8}y_{t - 32} + v_{t}
   \label{eq:hamilton-final}
 \end{equation}
-Therefore, all variables are detrended with Hamilton method in the baseline estimations.
+Therefore, all macroeconomic and financial variables are detrended with the Hamilton method for the following sections.
 
 \hypertarget{results}{%
 \chapter{Results}\label{results}}
 
-In this chapter I present the new uncertainty index in \protect\hyperlink{non-asset-market-index}{Non-Asset-Market Index}; I compare it with some of the main uncertainty indicators in \protect\hyperlink{correlatio-with-uncertainty-indicators}{Correlation with Uncertainty Indicators}; I analyze the relationship between me proposal and some real and financial variables in \protect\hyperlink{var-baseline}{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}; and, I perform several robustness exercises in \protect\hyperlink{robustness}{Robustness}.
+In this chapter I present the uncertainty index that I proposed in \protect\hyperlink{non-asset-market-uncertainty-index}{Non-Asset-Market Uncertainty Index}. Then, I compare it with the uncertainty indices from which it comes in \protect\hyperlink{correlation-with-uncertainty-indices}{Correlation with Other Uncertainty indices}. After that, I evaluate the relationship between the new index and some real and financial variables in \protect\hyperlink{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}. In the next stage, I shows how me proposal forecast better that alternative indices in \protect\hyperlink{forecasting}{Forecasting}. Finally, I perform several robustness exercises in \protect\hyperlink{robustness}{Robustness}.
 
-\hypertarget{non-asset-market-index}{%
-\section{Non-Asset-Market Index}\label{non-asset-market-index}}
+\hypertarget{non-asset-market-uncertainty-index}{%
+\section{Non-Asset-Market Uncertainty Index}\label{non-asset-market-uncertainty-index}}
+
+I estimate the non-asset-market uncertainty index following the quasi-maximum likelihood estimator of Doz, Giannone, \& Reichlin (\protect\hyperlink{ref-dozgianreic:2012}{2012}) as described in \protect\hyperlink{dynamic-factor-model}{Dynamic factor model}, although alternative estimators are tested in \protect\hyperlink{robustness}{Robustness}. Moreover, I use one dynamic factor, one static factor and one lag in the specification of the model because I am looking for one single summary index that captures the common comovements of uncertainty, hence, one dynamic and static factor seems appropriate. This binds the lag order to one as the lag order can not be greater that the ratio between the number of static factors and the number of dynamic factors---\(p \le \frac{r}{q}\) (Kilian \& Lütkepohl, \protect\hyperlink{ref-kililutk:2017}{2017}).
+
+Although the goal is construct one economic index from the underlying series, it is worthy show all factors and its behavior. Each factor is associated with an eigenvalue of the correlation matrix of the the raw data. The first factor is associated with the largest eigenvalue, the second factor with the second-largest eigenvalue, and so on. A \emph{scree plot} displays the marginal contribution---the average additional explanatory value of the kth factor---of the kth principal component to the average \(R^{2}\) of the \(N\) regressions of \(X_{t}\) against the first k principal components. Essentially, the scree plot shows the ordered eigenvalues of \(\hat{\sum}_{X}\) normalized by the sum of eigenvalues. The figure \ref{fig:scree-plot} displays the scree plot where only the first factor is significant. Likewise, the plot shows a bend and only the first factor is above this sharp break (which suggest one factor following the scree test of Cattel (\protect\hyperlink{ref-cattel:1966}{1966})). In summary, a single component is appropriate for summarizing this dataset.
 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.7\linewidth,]{Thesis_files/figure-latex/non-asset-market-index-1} 
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/scree-plot-1} 
 
 }
 
-\caption[Non-Asset-Market-Index]{\textbf{Non-Asset-Market-Index}: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.}\label{fig:non-asset-market-index}
+\caption[Scree Plot for Uncertainty Dataset]{\textbf{Scree Plot for Uncertainty Dataset}: The Figure shows a scree plot with the variance explained by each factor. The percentage explained taper off after the first factor---which is fill in black.}\label{fig:scree-plot}
 \end{figure}
-I estimate the DFM using one static and dynamic factor, because I am looking for the underlying structure behind uncertainty. The monthly non-asset-market uncertainty index is presented in Figure \ref{fig:non-asset-market-index}, together with the recession dates in the United States, as indicated by the NBER on its web site. The index peaks coincide with well-documented episodes of uncertainty in the financial markets and the real economy, including the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009.
 
-Recession dates clearly correlate with the amount of uncertainty in the market. That is to say, recessionary episodes are followed by a notable uncertainty shock.
+\begin{figure}
 
-In Table \ref{tab:summary-table} I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis and persistence for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence (AR(1) with drift). The basic idea is to calculate an \(F\) statistic (often called Chow statistic, named for its inventor, Gregory Chow (1960)) for each conceivable breakpoint in the interval \(\tau_{0} = 0.15T\) and \(\tau_{1} = 0.85T\) where \(T\) is the total of observations\footnote{That is to say, an \(F\) statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9, omitting the leading and trailing 15 \% of observations.}, and reject the null hypothesis of structural stability if the largest of the resulting \(F\) statistics exceeds a certain critical value (Andrews, 2003). This modified Chow test is variously called the \emph{Quand Likelihood Ratio (QLR) statistic} (Quandt, 1960)\footnote{For additional discussion of estimation and testing in the presence of discrete breaks, see Hansen (2001).}. Given that there is evidence for structural change in the model is necessary dating the structural change. Bai and Perron (1998, 2003) established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression.
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/non-asset-market-uncertainty-index-1} 
 
-The Chow test is the Wald statistic testing
-the hypothesis that the factor loadings are constant in a given equation, against the alter-
-native that they have different values before and after the Great Moderation break date of
-1984q4
+}
 
-The Quandt
-likelihood ratio (QLR) version allows for an unknown break date and is the maximum
-value of the Chow statistic (the sup-Wald statistic) for potential breaks in the central
-70\% of the sample, see Breitung and Eickmeier (2011) for additional discussion.
+\caption[Non-Asset-Market Uncertainty Index]{\textbf{Non-Asset-Market Uncertainty Index}: The Figure shows the non-asset-market uncertainty index from January 1985 to July 2017. Grey areas correspond to NBER recession dates (peak-to-trough), including the peaks and troughs. The horizontal line corresponds to the 95 percentile of the empirical distribution of the index. The original measure is scaled to start at 100.}\label{fig:non-asset-market-uncertainty-index}
+\end{figure}
+In the Figure \ref{fig:non-asset-market-uncertainty-index} is presented the non-asset-market index together with the recession dates in the United States as indicated by the National Bureau of Economic Research (NBER) on its website \url{https://www.nber.org/cycles.html}. Also, the 95th percentile of the series is presented as solid horizontal bar. The index peaks coincide with well known episodes of uncertainty in the economy as the Black Monday in October 1987, the bursting of the dot-com bubble and the Great Recession 2007--2009, although only the last has considerable impact.
+
+The index is clearly countercyclical, the cross-correlation with industrial production growth\footnote{The industrial production growth is calculated as the 12-month moving average of monthly growth rates (in annualized percentage).} is \(-0.69\). In the same period, the cross-correlation for the macroeconomic uncertainty index from Jurado et al. (\protect\hyperlink{ref-juraludvng:2015}{2015}) is -0.73. The latter shows that the new index has less pronounced peaks around the recession dates of the economy, which is more appealing to a continually level of uncertainty in the economy.
+
+In Table \ref{tab:summary-table} I report descriptive statistics for the non-asset-market uncertainty index. The skewness, kurtosis, persistence and half-life for the full sample and for two sub-samples are presented (January 1985 to July 2007 and August 2007 to August 2017). This break date was chosen after testing for a break at an unknown date in the autoregressive model of the shocks persistence---AR(1) with drift. The basic idea is to calculate an \(F\) statistic---often called Chow statistic, named for its inventor, Gregory Chow (\protect\hyperlink{ref-chow:1960}{1960})---for each conceivable breakpoint in the interval \(\tau_{0} = 0.15T\) and \(\tau_{1} = 0.85T\), where \(T\) is the total number of observations, and reject the null hypothesis of structural stability if the largest of the resulting \(F\) statistics exceeds a certain critical value\footnote{That is to say, an \(F\) statistic is computed for each potential breakpoint between 1989:M11 and 2012:M9 testing the hypothesis that the coefficients are constant against the alternative that they have different values before and after the breakpoint, omitting the leading and trailing 15 \% of observations.} (Andrews, \protect\hyperlink{ref-andrews:2003}{2003}). This modified Chow test is variously called the Quand Likelihood Ratio (QLR) statistic (Quandt, \protect\hyperlink{ref-quandt:1960}{1960})\footnote{See Hansen (\protect\hyperlink{ref-hansen:2001}{2001}) for additional discussion of estimation and testing in the presence of discrete breaks. Also, see Perron (\protect\hyperlink{ref-perron:2006}{2006}) for a general survey.}. Given that there is evidence of one structural change in the model is necessary dating that structural change. Bai and Perron (\protect\hyperlink{ref-baiperr:1998}{1998}, \protect\hyperlink{ref-baiperr:2003}{2003}) established a general methodology for estimating breakpoints and their associated confidence intervals in OLS regression. Henceforth, the two periods are choose following this methodology.
+
+The summary statistics in Table \ref{tab:summary-table} for the full period are misleading. For the first period of the sample the persistence is less that for the second period, so the time before a shock halve the distance to the stationary mean is smaller. Moreover, the distribution of the uncertainty index is different in location and shape for each period: the first part is slightly asymmetric and it has fewer outliers while the second part has more values above that below the mean and it has several values far from the mean. Nevertheless, the similarity between both periods is substantial but the shock for the Great Recession in 2007--2009. The last result can be though as evidence in line with a level of uncertainty less volatile and extreme across the economy, which is in concordance with the lower correlation founded in the last paragraph with a proxy for business cycle---industrial production.
+
+The persistence of the non-asset-market uncertainty index in the second sample is greater, for example, than that of the macroeconomic uncertainty from Jurado et al. (\protect\hyperlink{ref-juraludvng:2015}{2015}): 81 months versus 53 months. This shows that the level of uncertainty is continual in the sample.
 
 
-\begin{table}
+\begin{table}[t]
 
-\caption[Summary Statistics of Non-Asset-Market Index]{\label{tab:summary-table}\textbf{Summary Statistics of Non-Asset-Market Index}: The table reports the first-order autocorrelation coefficient and estimates of skewness and kurtosis.}
+\caption[Summary Statistics of Non-Asset-Market Uncertainty Index in Two Sub-Samples]{\label{tab:summary-table}\textbf{Summary Statistics of Non-Asset-Market Uncertainty Index in Two Sub-Samples}: The table reports estimates of skewness, kurtosis, first-order autocorrelation coefficient and half-life of an aggregate uncertainty innovation.}
 \centering
-\begin{tabular}[t]{lccc}
+\begin{tabular}{lccc}
 \toprule
+\multicolumn{1}{c}{} & \multicolumn{3}{c}{Sample period} \\
+\cmidrule(l{3pt}r{3pt}){2-4}
 Statistic & 1985:M1--2017:M7 & 1985:M1--2007:M7 & 2007:M8--2017:M7\\
 \midrule
-Skewness & 1.47 & 1.79 & 1.00\\
-Kurtosis & 3.05 & 5.08 & 0.42\\
-Persistence, AR(1) & 0.70 & 0.77 & 0.58\\
+Skewness & 2.458 & 0.209 & 1.764\\
+Excess kurtosis & 8.888 & -0.681 & 2.591\\
+Persistence, AR(1) & 0.989 & 0.983 & 0.992\\
+Half-life (months) & 62.789 & 40.543 & 81.368\\
 \bottomrule
 \end{tabular}
 \end{table}
-The first estimator used for construct the index is the Principal Component Estimator. Its properties are well discussed in Stock \& Watson (2002). Because there isn't missing data the estimator is suitable.
-
-Although the goal is construct one economic index from the underlying series, it is worthy show the number of components that satisfy several criteria. Each component is associated with an eigenvalue of the correlation matrix of the the raw data. The first principal component (PC) is associated with the largest eigenvalue, the second PC with the second-largest eigenvalue, and so on. The Kaiser-Harris criterion suggests retaining components with eigenvalues greater than 1 unit. Components with eigenvalues less than 1 explain less variance than contained in a single variable. In the Cattel Scree test, the eigenvalues are plotted against their component numbers. Finally, In Parallel Analysis (Hayton, Allen, \& Scarpello, 2004) are run simulations, extracting eigenvalues from random data matrices of the same size as the original matrix of data.
-
-The figure \ref{fig:scree-plot} displays the scree test based on the observed eigenvalues (as dashed line and points), the mean eigenvalues derived from 1000 random data matrices (as dotdashed line), and the eigenvalues greater than 1 (as a horizontal line at \(y = 1\)). Only the first PC is significantly greater than 1. Likewise, the plot shows a bend and only the PC above this sharp break is retained. Lastly, only the first PC is larger than the average corresponding eigenvalues from a set of random matrices. In summary, all three criteria suggest that a single component is appropriate for summarizing this dataset.
+\hypertarget{correlation-with-uncertainty-indices}{%
+\section{Correlation with Other Uncertainty Indices}\label{correlation-with-uncertainty-indices}}
 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.7\linewidth,]{Thesis_files/figure-latex/scree-plot-1} 
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/corr-plot-1} 
 
 }
 
-\caption[Scree Plot]{\textbf{Scree Plot}: The Figure shows a scree plot and parallel analysis with 1000 simulations --all components with eigenvalue greater that simulated value from parallel analysis are fill in black-- which suggest retaining a single component.}\label{fig:scree-plot}
+\caption[Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty Indices]{\textbf{Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty Indices}: The figure shows the correlation matrix between the the non-asset-market uncertainty index and other indices. The variables are defined as: EPU (3C): economic policy uncertainty index from three underlying components, EPU (News): economic policy uncertainty index based on newspaper archives from Access World New's NewsBank service, MPU (AWN): monetary policy uncertainty from draws on hundreds of U.S. newspapers covered by Access World News, MPU (10): monetary policy uncertainty from draws on a balanced panel of 10 major national and regional U.S. newspapers, MPU: monetary policy uncertainty from draws on the Wall Street Journal, New York Times and Washington post, MU (h): macroeconomic uncertainty at h horizon, RU (h): real uncertainty at h horizon, FU (h): financial uncertainty at h horizon and Non-Asset-Market: the uncertainty index propose in this document.}\label{fig:corr-plot}
 \end{figure}
-The sconed estimator used is the Two-Step developed by Doz, Giannone, \& Reichlin (2011). This methods uses PCA estimates and runs them through Kalman filter.
+To interpret the Figure \ref{fig:corr-plot}, the color in each cell represents a correlation between the two variables that meet at each cell. The magnitude and direction of the correlation is defined by the color spectrum in the legend of the plot. In general, the light color represents a positive correlation and the dark color represents a low or even negative correlation. Also, the rows and columns have been reordered (using principal components analysis, as explained in Friendly (\protect\hyperlink{ref-friendly:2002}{2002}) for correlograms) to cluster variables together that have similar correlation patterns. It is shown from the shaded cells that the non-asset-market uncertainty index is much more correlated with the econometrics measures of uncertainty and less with the newspaper-based measures of uncertainty.
 
-The third estimator used is the Quasi-Maximum Likelihood by Doz, Giannone, \& Reichlin (2012). Similar to two-setp estimator, however Kalman filtering procedure is iterated until Expectation-Maximization (EM) algorithm converges.
+\hypertarget{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}{%
+\section{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}\label{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}}
 
-All three estimators gives similar results, from now I use for analysis the index obtained from the Quasi-Maximum Likelihood method.
+I explore the dynamic relationship between my uncertainty index and some variables from the United States' economy. For that purpose, I use a benchmark model well documented: the model proposed by Christiano, Eichenbaum, \& Evans (\protect\hyperlink{ref-chrieichevan:2005}{2005})---and used as a base in Chuliá, Guillén, \& Uribe (\protect\hyperlink{ref-chulguilurib:2017}{2017}). First, the characterization of monetary policy is defined by:
+\begin{equation}
+    R_{t} = f(\Omega_{t}) + \epsilon_{t} \label{eq:R}
+\end{equation}
+Where, \(R_ {t}\) is the effective federal funds rate---understood as the monetary policy instrument---, \(f\) is a linear function, \(\Omega_{t}\) is an information set and \(\epsilon_{t}\) is the monetary policy shock, where it is assumed that \(\epsilon_{t}\) is orthogonal to \(\Omega_{t}\).
 
-\hypertarget{correlatio-with-uncertainty-indicators}{%
-\section{Correlation with Uncertainty Indicators}\label{correlatio-with-uncertainty-indicators}}
+Considering \(Y_{t}\) as the set of variables to which the dynamic effect of an uncertainty shock will be analyzed, there is:
+\begin{equation}
+    Y_{t} = 
+    \begin{bmatrix}
+      Y_{1t} & R_{t} & Y_{2t} & U_{t} \label{eq:variables}
+    \end{bmatrix}_{T \times N}'
+\end{equation}
+The vector \(Y_{1t}\) is composed of the variables whose values at the moment \(t\) are contained in \(\Omega_{t}\) and it is assumed that they do not respond simultaneously to a monetary policy shock: production, employment, consumption, inflation, new orders, wages and labor. The vector \(Y_{2t}\) consists of the values at the moment \(t\) of all the other variables in \(\Omega_{t}\), which simultaneously respond to a monetary policy shock: stock market index and M2. In the last position, I place my uncertainty index \(U_{t}\)---as do Jurado et al. (\protect\hyperlink{ref-juraludvng:2015}{2015}), Bloom (\protect\hyperlink{ref-bloom:2009}{2009}), and Chuliá et al. (\protect\hyperlink{ref-chulguilurib:2017}{2017})\footnote{See \protect\hyperlink{data}{Data} for a detailed description of the series used in this section as the transformations made to them.}. I estimate a VAR model with 12 fixed lags, as opposed to the four quarters used in Christiano et al. (\protect\hyperlink{ref-chrieichevan:2005}{2005}) following the caveats of Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as discussed in \protect\hyperlink{lag-order}{Lag order}. I recover the structural innovations by means of a Cholesky factorization of the variance-covariance matrix. Since depending on whether the variables react or not to other variables contemporaneously, the Cholesky decomposition implies a certain ordering, the estimation order from more exogenous to more endogenous is the same as of the Equation \eqref{eq:variables}.
 
-\hypertarget{var-baseline}{%
-\section{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}\label{var-baseline}}
+The VAR model with constant term ignored can be written as follows:
+\begin{equation}
+  Y_{t} = A_{1}Y_{t - 1} + \cdots + A_{12}Y_{t - 12} + C \eta_{t}
+\end{equation}
+where \(C\) is a \(11 \times 11\) lower triangular matrix with diagonal terms equal to unity, and \(\eta_{t}\) is a eleven-dimensional vector of zero-mean, serially uncorrelated shocks with a diagonal variance-covariance matrix. I estimate the parameters \(A_{i} ~ \text{with} ~ i=1, \ldots, ~ 12\), \(C\), and the variances of the elements of \(\eta_{t}\) using standard least-squares methods. Using these estimates, I compute the dynamic path of the variables following a one shock in \(U_{t}\) with initial conditions set to zero. This paths corresponds to the coefficients in the impulse response functions, which are displayed in Figure \ref{fig:irf-baseline-plot}.
 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.7\linewidth,]{Thesis_files/figure-latex/irf-baseline-plot-1} 
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/irf-baseline-plot-1} 
 
 }
 
-\caption[Economic Dynamics under Uncertainty]{\textbf{Economic Dynamics under Uncertainty}: The Figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axes are in percentages but the federal funds rate and employment are in basic points. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (1993).}\label{fig:irf-baseline-plot}
+\caption[Economic Dynamics Under Uncertainty in the 11-Variable VAR]{\textbf{Economic Dynamics Under Uncertainty in the 11-Variable VAR}: The figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty (model with 12 fixed lags following Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as explained in \protect\hyperlink{lag-order}{Lag order}), based on 1000 replications. The axes are in percentages but the federal funds rate is in basic points and employment is in number of employees. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (\protect\hyperlink{ref-efrotibs:1993}{1993}).}\label{fig:irf-baseline-plot}
+\end{figure}
+Production reacts negatively to an uncertainty shock and the persistence last until the second year. Likewise, employment decreases following a uncertainty shock and the impact persists for the same time that production (two years). In contrast, new orders reacts negatively faster and last for only one year after which its becomes zero. Consumption reacts slowly to the uncertainty shock, this decreases after one year and maintain its behavior for two years and a half (that is, six months more than production, employment and new orders). The stock market index is severely affected and his persistence last for the same period that the variables discussed so far. Although, the series does not stabilize at a lower level as reported in Chuliá et al. (\protect\hyperlink{ref-chulguilurib:2017}{2017}). In addition, the federal funds rate also seems sensitive to an uncertainty shock. Specifically, the Federal reserve reduce the interest rate---which is significant for the first year---that shows that the reduction in the stock market index is due to uncertainty and not to movements in the interest rate. Finally, I don't find any evidence of the \emph{rebound} effect evidenced in Bloom (\protect\hyperlink{ref-bloom:2009}{2009}) for production neither the \emph{rebound} effect proposed in Chuliá et al. (\protect\hyperlink{ref-chulguilurib:2017}{2017}) for New Orders.
+
+The Figure \ref{fig:fevd-plot} shows the forecast error variance decomposition (FEVD) which allows to analyze the contribution of each variable to the \(h\)-step forecast error variance of all other variables. Accordingly, the forecast error of the production series is explained by uncertainty six months after the innovation in 10 \%, twelve months after in 25 \% and twenty-four months after in 30 \%. For employment, uncertainty accounts for 10 \% twelve months after the original structural innovation and 20 \% two years later. For new orders, the uncertainty accounts for 15 \% of the variance six months on and then stabilize in 10 \%. For consumption, the uncertainty accounts for less that 5 \% in the first twelve months but after for 15 \% of the variance. For the financial prices---stock market index---, the uncertainty accounts for the same amount as consumption, i.e., starts in 5 \% and then its stabilizes in 15 \%. Finally, the forecast error of federal funds rate is explained by uncertainty between the 5 \% and 10 \%. These results confirm the importance of uncertainty as a driver of the economy's dynamics.
+
+One important question to resolver is if monetary policy interventions have effect on uncertainty. The Figure \ref{fig:fevd-plot} shows the reaction of uncertainty to an unexpected loosening of monetary policy; it can be see that there not a significant effect. That is to say, an expansionary monetary policy does not have sizable impact on uncertainty. In the same way, the forecast error of the uncertainty series is minimally explained by an uncertainty shock (see Figure \ref{fig:R-fevd-plot}). These findings are contrary to the documented in Bekaert et al. (\protect\hyperlink{ref-bekahoerduca:2013}{2013}) and Chuliá et al. (\protect\hyperlink{ref-chulguilurib:2017}{2017}), which reports significant effects, and add to the research field by exploring the relationship between policy intervention and uncertainty.
+
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/fevd-plot-1} 
+
+}
+
+\caption[Forecast Error Variance Decomposition in the 11-Variable VAR]{\textbf{Forecast Error Variance Decomposition in the 11-Variable VAR}: The figure shows the percentage of variance of the \(h\)-step-ahead forecast error due to a shocks of each variable, for \(h = 1, \ldots, 60\).}\label{fig:fevd-plot}
 \end{figure}
 
-\begin{table}
+\begin{figure}
 
-\caption[Granger-Causality Tests]{\label{tab:Granger-table}\textbf{Granger-Causality Tests}: The entries show the \(p\)-values for F-tests that lags of the variable in the row labeled \emph{Regressor} do not enter the reduced form equation for all remaining variables.}
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/R-plot-1} 
+
+}
+
+\caption[Dynamics of Policy Intervention and Uncertainty in the 11-Variable VAR]{\textbf{Dynamics of Policy Intervention and Uncertainty in the 11-Variable VAR}: The figure shows the reaction of uncertainty to an unexpected loosening of monetary policy (model with 12 fixed lags following Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as explained in \protect\hyperlink{lag-order}{Lag order}), based on 1000 replications. The axis is in units. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (\protect\hyperlink{ref-efrotibs:1993}{1993}).}\label{fig:R-plot}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/R-fevd-plot-1} 
+
+}
+
+\caption[Forecast Error Variance Decomposition for Uncertainty in the 11-Variable VAR]{\textbf{Forecast Error Variance Decomposition for Uncertainty in the 11-Variable VAR}: The figure shows the fractions of the forecast error variance due monetary policy innovations. The estimation period runs from January 1985 to July 2017.}\label{fig:R-fevd-plot}
+\end{figure}
+\hypertarget{forecasting}{%
+\section{Forecasting}\label{forecasting}}
+
+The forecasting capabilities of the VAR model are evaluated with different uncertainty indices through multistep-ahead forecasts---computed by iterating forward the reduced form VAR---in Table \ref{tab:rmsfe-non-asset-market}. The core idea, following Stock \& Watson (\protect\hyperlink{ref-stocwats:2001}{2001}), of an iterated forecast is that a VAR model is used to make a forecast one period ahead (\(T + 1\)) using data through period \(T\). Then the model is used to make a forecast for date \(T + 2\), given the data through date \(T\), where the forecasted value for date \(T + 1\) is treated as data for the purpose of making the forecast for period \(T + 2\). Therefore, the one-step ahead forecast is used as an intermediate step to make the two-step ahead forecast. This process is iterated until the forecast is made for the desired forecast horizon \(h\). In other words, to compute multistep iterated VAR forecasts \(h\) steps ahead, it is necessary to compute forecasts of all variables for all intervening periods between \(T\) and \(T + h\). Since the ultimate test of a forecasting model is its out-of-sample performance, Table \ref{tab:rmsfe-non-asset-market} focuses on pseudo out-of-sample forecasts over the period from 2014:M4 to 2017:M7---that is the 10 \% of the sample. Likewise, it examines forecast horizons of three months, six months, nine months and twelve months: \(h = 3, 6, 9, 12\).
+
+Table \ref{tab:rmsfe-non-asset-market} shows the root mean square forecast error of the forecasting model for several uncertainty indices. The mean squared forecast error is computed as the average squared value of the forecast error over the 2014--2017 out-of-sample period, and the resulting square root is the mean squared forecast error reported in the table. For instance, Table \ref{tab:rmsfe-non-asset-market} indicates that the VAR model with the non-asset market index as last variable improves upon the VAR models with the economic policy uncertainty or macroeconomic uncertainty in replace. Specifically, the forecast model with the non-asset-market uncertainty index has lower error for employment, labor and stock market index over the two remaining models and for production, wages and federal funds rate is the second best.
+
+
+\begin{landscape}\begin{table}[t]
+
+\caption[Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts]{\label{tab:rmsfe-non-asset-market}\textbf{Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts, 2014:M4--2017:M7}: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions with different uncertainty index (models with 12 fixed lags following Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as explained in \protect\hyperlink{lag-order}{Lag order}). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.}
 \centering
-\begin{tabular}[t]{lc}
+\begin{tabu} to \linewidth {>{\centering}X>{\centering}X>{\centering}X>{\centering}X>{\centering}X>{\centering}X>{\centering}X>{\centering}X}
 \toprule
-Regressor & p-values\\
+Forecast Horizont & Production & Employment & Inflation & Wages & Labor & Federal Funds Rate & Stock Market Index\\
 \midrule
-Production & 0.03\\
-Employment & 0.00\\
-Consumption & 0.04\\
-Inflation & 0.11\\
-New Orders & 0.00\\
-Wages & 0.17\\
-Labor & 0.00\\
-Federal Funds rate & 0.00\\
-Stock market index & 0.00\\
-M2 & 0.83\\
-Non-Asset-Market Uncertainty & 0.00\\
+\addlinespace[2em]
+\multicolumn{8}{l}{\textbf{Non-Asset-Market Uncertainty Index}}\\
+\hspace{1em}3 months & 0.02 & 19.33 & 0.56 & 0.35 & 0.03 & 0.19 & 2.75\\
+\hspace{1em}6 months & 0.03 & 33.70 & 0.55 & 0.63 & 0.03 & 0.33 & 4.95\\
+\hspace{1em}12 months & 0.50 & 40.25 & 0.73 & 1.21 & 0.00 & 0.67 & 10.34\\
+\hspace{1em}24 months & 2.04 & 31.32 & 0.71 & 2.06 & 0.12 & 1.19 & 18.86\\
+\addlinespace[2em]
+\multicolumn{8}{l}{\textbf{Economic Policy Uncertainty Index}}\\
+\hspace{1em}3 months & 0.13 & 33.56 & 1.07 & 0.29 & 0.03 & 0.08 & 0.79\\
+\hspace{1em}6 months & 0.27 & 61.39 & 1.11 & 0.55 & 0.05 & 0.16 & 1.53\\
+\hspace{1em}12 months & 0.48 & 72.29 & 1.11 & 1.07 & 0.04 & 0.30 & 6.41\\
+\hspace{1em}24 months & 3.78 & 76.29 & 0.77 & 1.78 & 0.11 & 0.34 & 17.80\\
+\addlinespace[2em]
+\multicolumn{8}{l}{\textbf{Macroeconomic Uncertainty Index}}\\
+\hspace{1em}3 months & 0.04 & 15.56 & 0.56 & 0.36 & 0.03 & 0.19 & 2.93\\
+\hspace{1em}6 months & 0.06 & 27.24 & 0.53 & 0.64 & 0.03 & 0.34 & 5.29\\
+\hspace{1em}12 months & 0.57 & 32.30 & 0.74 & 1.22 & 0.01 & 0.66 & 10.71\\
+\hspace{1em}24 months & 2.18 & 44.50 & 0.73 & 2.08 & 0.13 & 1.19 & 19.52\\
 \bottomrule
-\end{tabular}
+\end{tabu}
 \end{table}
+\end{landscape}
 \hypertarget{robustness}{%
 \section{Robustness}\label{robustness}}
 
+I perform several robustness exercises varying the econometric methodology employed to create the non-asset-market uncertainty index. I estimate the uncertainty index using PCA (Stock \& Watson, \protect\hyperlink{ref-stocwats:2002}{2002}) and PCA estimates runs through Kalman ﬁlter---two-step (Doz et al., \protect\hyperlink{ref-dozgianreic:2011}{2011})---instead of quasi-maximum likelihood (Doz et al., \protect\hyperlink{ref-dozgianreic:2012}{2012}). The results are summarized in Figure \ref{fig:robustness-methods}. In general, the uncertainty index behaves in a very similar fashion, regardless of the factor methodology used to summarize the components of the series.
+
+In the same way, I employ different variable sets and orderings in the VAR estimated in \protect\hyperlink{estimates-on-the-impact-of-non-asset-market-uncertainty-shocks}{Estimates on the Impact of Non-Asset-Market Uncertainty Shocks}. First, I change the sector of the variables to the manufacturing sector with eight variables following Bloom (\protect\hyperlink{ref-bloom:2009}{2009}). The variables in the estimation order are production in manufacturing, employment in manufacturing, labor in manufacturing, inflation (based on all urban consumers), wages in manufacturing, federal funds rate, stock-market index and non-asset-market uncertainty\footnote{See \protect\hyperlink{data}{Data} for a detailed description of the series used in this section as the transformations made to them.}. The ordering is based on the assumptions that shocks instantaneously influence the stock market, then prices (wages, inflation, and interest rates), and finally quantities (labor, employment, and output). All variables are Hamilton detrended with a look-ahead period of two years (\(h = 24\)), as explained in \protect\hyperlink{detrend}{Detrend}.
+
+Figure \ref{fig:production-medium} plots the impulse response function of industrial production in manufacturing (the dashed line) to a non-asset-market uncertainty shock. The variable displays a fall of around 0.85 \% within 15 months. The confidence bands (shaded area) are plotted around this, highlighting that this drop is statistically significant. For comparison to a first-moment shock, the response to a impulse to the federal funds rate is also plotted (dotted line) displaying a minor drop over the subsequent 2 years\footnote{The response to a fall the stock-market (not plotted) is similar in size and magnitude to the response to a rise in the federal funds rate.}. Figure \ref{fig:employment-medium} repeats the same exercise for employment, displaying a similar drop in activity. These findings are evidence that the overshoot observed by Bloom (\protect\hyperlink{ref-bloom:2009}{2009}) is sensitive to whether the data are HP filtered---as claims Jurado et al. (\protect\hyperlink{ref-juraludvng:2015}{2015})---because this document uses the Hamilton filter but the same data.
+
+In Figure \ref{fig:robustness}, the VAR results are show to be robust to a variety of alternative variables sets and orderings. The VAR is reestimated using a simple trivariate VAR (production in manufacturing, employment in manufacturing and non-asset-market uncertainty only) which also display a drop (dashed line). The ``quadvariate'' VAR (production in manufacturing, employment in manufacturing, stock-market index and non-asset-market uncertainty only) also displays a similar drop (solid line), as does the quadvariate VAR with the variable ordering reversed (dotted line). Therefore, the response of production to an uncertainty shock appears robust to both the basic selection and the ordering of variables.
+
+Henceforth, Figures \ref{fig:robustness-methods}, \ref{fig:production-medium}, \ref{fig:employment-medium} and \ref{fig:robustness} confirm the robustness of the DFM to the methodology used and of VAR results to a range of alternative approaches over variable ordering and variable inclusion.
+
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/robustness-methods-1} 
+
+}
+
+\caption[Robustness to Estimation Method]{\textbf{Robustness to Estimation Method}: The figure shows the comparison between the non-asset-market uncertainty index using quasi-maximum likelihood (Doz et al., \protect\hyperlink{ref-dozgianreic:2012}{2012}), principal components (Stock \& Watson, \protect\hyperlink{ref-stocwats:2002}{2002}) and two-step (Doz et al., \protect\hyperlink{ref-dozgianreic:2011}{2011}). All the indices have been standardized to make proper comparisons.}\label{fig:robustness-methods}
+\end{figure}
 
 \begin{figure}
 
@@ -425,70 +597,39 @@ Non-Asset-Market Uncertainty & 0.00\\
 
 }
 
-\caption[Decline of production under uncertainty]{\textbf{Decline of production under uncertainty}: The Figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market (model with 3 lags, selected by the Akaike Information Criterion), based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (1993).}\label{fig:production-medium}
+\caption[Decline of Production Under Uncertainty in the 8-Variable VAR]{\textbf{Decline of Production Under Uncertainty in the 8-Variable VAR}: The figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as explained in \protect\hyperlink{lag-order}{Lag order}), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (\protect\hyperlink{ref-efrotibs:1993}{1993}).}\label{fig:production-medium}
 \end{figure}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.7\linewidth,]{Thesis_files/figure-latex/employment-medium-1} 
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/employment-medium-1} 
 
 }
 
-\caption[Decline of employment under uncertainty]{\textbf{Decline of employment under uncertainty}: The Figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected fall the stock-market, based on 1000 replications. The estimation period runs from January 1985 to July 2017. The axe is in percentage. Confidence bands (66 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (1993).}\label{fig:employment-medium}
+\caption[Decline of Employment Under Uncertainty in the 8-Variable VAR]{\textbf{Decline of Employment Under Uncertainty in the 8-Variable VAR}: The figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher (\protect\hyperlink{ref-leebpots:2005}{2005}, \protect\hyperlink{ref-leebpots:2006}{2006}), as explained in \protect\hyperlink{lag-order}{Lag order}), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in Efron \& Tibshirani (\protect\hyperlink{ref-efrotibs:1993}{1993}).}\label{fig:employment-medium}
 \end{figure}
-\hypertarget{forecasting}{%
-\section{Forecasting}\label{forecasting}}
 
+\begin{figure}
 
-\begin{table}
+{\centering \includegraphics[width=0.7\linewidth]{Thesis_files/figure-latex/robustness-1} 
 
-\caption[Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts]{\label{tab:RMSFE-non-asset-market}\textbf{Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts}: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.}
-\centering
-\begin{tabular}[t]{lccc}
-\toprule
-Variable & 3 months & 6 months & 9 months\\
-\midrule
-Production & 0.72 & 1.11 & 1.15\\
-Employment & 76.18 & 128.51 & 163.68\\
-Inflation & 0.08 & 0.09 & 0.07\\
-Wages & 0.49 & 0.81 & 1.11\\
-Labor & 0.08 & 0.10 & 0.11\\
-Federal Funds rate & 0.13 & 0.23 & 0.28\\
-Stock market index & 1.81 & 2.76 & 3.03\\
-Uncertainty index (NAM) & 0.85 & 2.66 & 4.13\\
-\bottomrule
-\end{tabular}
-\end{table}
+}
 
-\begin{table}
-
-\caption[Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts]{\label{tab:RMSFE-non-asset-market-org}\textbf{Root Mean Squared Errors of Simulated Out-Of-Sample Forecasts}: Entries are the root mean squared error of forecasts computed recursively for vector autoregressions (each with three lags). Each model was estimated using data from 1985:M1 through the beginning of the forecast period.}
-\centering
-\begin{tabular}[t]{lccc}
-\toprule
-Variable & 3 months & 6 months & 9 months\\
-\midrule
-Production & 0.25 & 0.37 & 0.22\\
-Employment & 56.00 & 88.67 & 107.95\\
-Inflation & 0.06 & 0.01 & 0.01\\
-Wages & 0.48 & 0.81 & 1.14\\
-Labor & 0.04 & 0.04 & 0.05\\
-Federal Funds rate & 0.08 & 0.15 & 0.19\\
-Stock market index & 1.10 & 1.60 & 1.31\\
-Uncertainty index (NAM) & 0.00 & 0.00 & 0.00\\
-\bottomrule
-\end{tabular}
-\end{table}
+\caption[VAR Model is Robust to Different Variable Sets and Ordering]{\textbf{VAR Model is Robust to Different Variable Sets and Ordering}: The figure shows the reaction of production---both production and employment are for the manufacturing sector---to an unexpected increment of non-asset-market uncertainty. The axis is in percentage. The estimation period runs from January 1985 to July 2017. The models are defined as: trivariate (production, employment and non-asset-market uncertainty shocks), Quadvariate (production, employment, stock-market and non-asset-market uncertainty shocks) and Quadvariate in reverse (non-asset-market uncertainty shocks, stock-market, employment and production).}\label{fig:robustness}
+\end{figure}
 \hypertarget{conclusion}{%
 \chapter*{Conclusion}\label{conclusion}}
 \addcontentsline{toc}{chapter}{Conclusion}
 
-\appendix
+I propose an index of non-asset-market uncertainty on a monthly basis for the United States' economy between 1985 and 2017. As such, it can be used as instrument to evaluate policy interventions on economic uncertainty.
 
-\hypertarget{replication}{%
-\chapter{Replication}\label{replication}}
+On the other hand, I identify a relation between the uncertainty index and established periods of economic stress such as bubble regimes in the stock market. In addition, I document a break in the persistence of the series before and after the Great Recession 2007-2009. The series becomes more persistence and with shocks of greater duration after this date.
 
-In the estimations I make use of the r-package \texttt{dynfactoR} (Bagdziunas, 2019) to estimate the DFM, the r-package \texttt{psych} (Revelle, 2019) to select the optimal number of components, to estimate structural breaks in the index I employ the r-package \texttt{strucchange} (Zeileis, Leisch, Hornik, \& Kleiber, 2019) and to estimate the VARs models the r-package \texttt{vars} (Pfaff, 2018) was used.
+Furthermore, I discussed why my uncertainty index has appealing characteristics that made him more suitable for prediction and balances the extreme movements---high volatility and extreme correlation with recession dates---from the traditional uncertainty measures.
+
+The dynamics observed within the VAR model are compatible with previous findings. That is, a negative relation between the real variables such as production, employment, new orders and consumption. In the same way, its evidenced a negative relation with financial prices such as the stock market index.
+
+Lastly, I explore the relationship between uncertainty and monetary policy. I find that there are not a significant relation between both variables, which raises questions regarding the capability of the central banks to fight uncertainty by means of traditional monetary policy through interest rates.
 
 \backmatter
 
@@ -505,14 +646,17 @@ In the estimations I make use of the r-package \texttt{dynfactoR} (Bagdziunas, 2
 \setlength{\parskip}{8pt}
 
 \hypertarget{refs}{}
+\leavevmode\hypertarget{ref-alticrisfornlippvero:2010}{}%
+Altissimo, F., Cristadoro, R., Forni, M., Lippi, M., \& Veronese, G. (2010). New Eurocoin: Tracking economic growth in real time. \emph{The Review of Economics and Statistics}, \emph{92}(4), 1024--1034. \url{http://doi.org/10.1162/REST/_a/_00045}
+
 \leavevmode\hypertarget{ref-andrews:2003}{}%
 Andrews, D. W. (2003). Tests for parameter instability and structural change with unknown change point: A corrigendum. \emph{Econometrica}, \emph{71}(1), 395--397. \url{http://doi.org/10.1111/1468-0262.00405}
 
-\leavevmode\hypertarget{ref-R-dynfactoR}{}%
-Bagdziunas, R. (2019). \emph{DynfactoR: Dynamic factor model estimation for nowcasting}.
+\leavevmode\hypertarget{ref-aruodiebscot:2009}{}%
+Aruoba, S. B., Diebold, F. X., \& Scotti, C. (2009). Real-time measurement of business conditions. \emph{Journal of Business \& Economic Statistics}, \emph{27}(4), 417--427. \url{http://doi.org/10.1198/jbes.2009.07205}
 
-\leavevmode\hypertarget{ref-baing:2002}{}%
-Bai, J., \& Ng, S. (2002). Determining the number of factors in approximate factor models. \emph{Econometrica}, \emph{70}(1), 191--221. \url{http://doi.org/10.1111/1468-0262.00273}
+\leavevmode\hypertarget{ref-baing:2013}{}%
+Bai, J., \& Ng, S. (2013). Principal components estimation and identification of static factors. \emph{Journal of Econometrics}, \emph{176}(1), 18--29. \url{http://doi.org/10.1016/j.jeconom.2013.03.007}
 
 \leavevmode\hypertarget{ref-baiperr:1998}{}%
 Bai, J., \& Perron, P. (1998). Estimating and testing linear models with multiple structural changes. \emph{Econometrica}, \emph{66}(1), 47--78. \url{http://doi.org/10.2307/2998540}
@@ -523,17 +667,32 @@ Bai, J., \& Perron, P. (2003). Computation and analysis of multiple structural c
 \leavevmode\hypertarget{ref-bakebloodavi:2016}{}%
 Baker, S. R., Bloom, N., \& Davis, S. J. (2016). Measuring economic policy uncertainty. \emph{The Quarterly Journal of Economics}, \emph{131}(4), 1593--1636. \url{http://doi.org/10.1093/qje/qjw024}
 
-\leavevmode\hypertarget{ref-banbgianreic:2011}{}%
-BańBura, M., Giannone, D., \& Reichlin, L. (2011). Nowcasting. In M. P. Clements \& D. F. Hendry (Eds.), \emph{Oxford handbook on economic forecasting} (pp. 193--224). Oxford: Oxford University Press.
+\leavevmode\hypertarget{ref-bansyaro:2004}{}%
+Bansal, R., \& Yaron, A. (2004). Risks for the long run: A potential resolution of asset pricing puzzles. \emph{The Journal of Finance}, \emph{59}(4), 1481--1509. \url{http://doi.org/10.1111/j.1540-6261.2004.00670.x}
 
-\leavevmode\hypertarget{ref-banbruns:2011}{}%
-Bańbura, M., \& Rünstler, G. (2011). A look into the factor model black box: Publication lags and the role of hard and soft data in forecasting GDP. \emph{International Journal of Forecasting}, \emph{27}(2), 333--346. \url{http://doi.org/10.1016/j.ijforecast.2010.01.011}
+\leavevmode\hypertarget{ref-bekahoerduca:2013}{}%
+Bekaert, G., Hoerova, M., \& Duca, M. L. (2013). Risk, uncertainty and monetary policy. \emph{Journal of Monetary Economics}, \emph{60}(7), 771--788. \url{http://doi.org/10.1016/j.jmoneco.2013.06.003}
 
-\leavevmode\hypertarget{ref-britfishwhit:1998}{}%
-Britton, E. D., Fisher, P. B., \& Whitley, J. (1998). The inflation report projections: Understanding the fan chart. \emph{Bank of England Quarterly Bulletin}, \emph{38}, 30--37. Retrieved from \url{shorturl.at/jklKT}
+\leavevmode\hypertarget{ref-bernanke:1983}{}%
+Bernanke, B. S. (1983). Irreversibility, uncertainty, and cyclical investment. \emph{The Quarterly Journal of Economics}, \emph{98}(1), 85--106. \url{http://doi.org/10.2307/1885568}
+
+\leavevmode\hypertarget{ref-bernstein:1998}{}%
+Bernstein, P. L. (1998). \emph{Againts the gods: The remarkable story of risk}. New York, NY: John Wiley Sons.
+
+\leavevmode\hypertarget{ref-bloom:2009}{}%
+Bloom, N. (2009). The impact of uncertainty shocks. \emph{Econometrica}, \emph{77}(3), 623--685. \url{http://doi.org/10.3982/ECTA6248}
+
+\leavevmode\hypertarget{ref-bloofloejaimsapoterr:2018}{}%
+Bloom, N., Floetotto, M., Jaimovich, N., Saporta-Eksten, I., \& Terry, S. J. (2018). Really uncertain business cycles. \emph{Econometrica}, \emph{86}(3), 1031--1065. \url{http://doi.org/10.3982/ECTA10927}
 
 \leavevmode\hypertarget{ref-caldiaco:2018}{}%
 Caldara, D., \& Iacoviello, M. (2018). \emph{Measuring geopolitical risk} (International Finance Discussion Papers No. 1222). Board of Governors of the Federal Reserve System (U.S.).
+
+\leavevmode\hypertarget{ref-cattel:1966}{}%
+Cattel, R. B. (1966). The scree test for the number of factors. \emph{Multivariate Behavioral Research}, \emph{1}(2), 245--276. \url{http://doi.org/10.1207/s15327906mbr0102_10}
+
+\leavevmode\hypertarget{ref-chamroth:1983}{}%
+Chamberlain, G., \& Rothschild, M. (1983). Arbitrage, factor structure, and mean-variance analysis on large asset markets. \emph{Econometrica}, \emph{51}(5), 1281--1304. \url{http://doi.org/10.2307/1912275}
 
 \leavevmode\hypertarget{ref-chow:1960}{}%
 Chow, G. C. (1960). Tests of equality between sets of coefficients in two linear regressions. \emph{Econometrica}, \emph{28}(3), 591--605. \url{http://doi.org/10.2307/1910133}
@@ -544,8 +703,8 @@ Christiano, L. J., Eichenbaum, M., \& Evans, C. L. (2005). Nominal rigidities an
 \leavevmode\hypertarget{ref-chulguilurib:2017}{}%
 Chuliá, H., Guillén, M., \& Uribe, J. M. (2017). Measuring uncertainty in the stock market. \emph{International Review of Economics \& Finance}, \emph{48}, 18--33. \url{http://doi.org/10.1016/j.iref.2016.11.003}
 
-\leavevmode\hypertarget{ref-clements:2004}{}%
-Clements, M. P. (2004). Evaluating the bank of England density forecasts of inflation. \emph{The Economic Journal}, \emph{114}(498), 844--866. \url{http://doi.org/10.1111/j.1468-0297.2004.00246.x}
+\leavevmode\hypertarget{ref-cronclay:2005}{}%
+Crone, T. M., \& Clayton-Matthews, A. (2005). Consistent economic indexes for the 50 states. \emph{The Review of Economics and Statistics}, \emph{87}(4), 593--603. Retrieved from \url{http://www.jstor.org/stable/40042878}
 
 \leavevmode\hypertarget{ref-dattlondsunbeltferriacojahaligiudroge:2017}{}%
 Datta, D. D., Londono, J. M., Sun, B., Beltran, D. O., Ferreira, T. R. T., Iacoviello, M., \ldots{} Rogers, J. H. (2017). \emph{Taxonomy of global risk, uncertainty, and volatility measures} (International Finance Discussion Papers No. 1216). Board of Governors of the Federal Reserve System (U.S.).
@@ -559,11 +718,8 @@ Doz, C., Giannone, D., \& Reichlin, L. (2012). A quasi--maximum likelihood appro
 \leavevmode\hypertarget{ref-efrotibs:1993}{}%
 Efron, B., \& Tibshirani, R. J. (1993). \emph{An introduction to the bootstrap}. Boca Raton, Florida: Chapman \& Hall/CRC.
 
-\leavevmode\hypertarget{ref-gianreicsmal:2008}{}%
-Giannone, D., Reichlin, L., \& Small, D. (2008). Nowcasting: The real-time informational content of macroeconomic data. \emph{Journal of Monetary Economics}, \emph{55}(4), 665--676. \url{http://doi.org/10.1016/j.jmoneco.2008.05.010}
-
-\leavevmode\hypertarget{ref-gonzpita:2002}{}%
-Gonzalo, J., \& Pitarakis, J.-Y. (2002). Lag length estimation in large dimensional systems. \emph{Journal of Time Series Analysis}, \emph{23}(4), 401--423. \url{http://doi.org/10.1111/1467-9892.00270}
+\leavevmode\hypertarget{ref-friendly:2002}{}%
+Friendly, M. (2002). Corrgrams: Exploratory displays for correlation matrices. \emph{The American Statistician}, \emph{56}, 316--324. \url{http://doi.org/10.1198/000313002533}
 
 \leavevmode\hypertarget{ref-hamilton:2018}{}%
 Hamilton, J. D. (2018). Why you should never use the Hodrick-Prescott filter. \emph{The Review of Economics and Statistics}, \emph{100}(5), 831--843. \url{http://doi.org/10.1162/rest/_a/_00706}
@@ -571,17 +727,11 @@ Hamilton, J. D. (2018). Why you should never use the Hodrick-Prescott filter. \e
 \leavevmode\hypertarget{ref-hansen:2001}{}%
 Hansen, B. E. (2001). The new econometrics of structural change: Dating breaks in U.S. labor productivity. \emph{The Journal of Economic Perspectives}, \emph{15}(4), 117--128. \url{http://doi.org/10.1257/jep.15.4.117}
 
-\leavevmode\hypertarget{ref-haytallescar:2004}{}%
-Hayton, J. C., Allen, D. G., \& Scarpello, V. (2004). Factor retention decisions in exploratory factor analysis: A tutorial on parallel analysis. \emph{Organizational Research Methods}, \emph{7}(2), 191--205. \url{http://doi.org/10.1177/1094428104263675}
-
 \leavevmode\hypertarget{ref-hustrogesun:2019}{}%
 Husted, L., Rogers, J., \& Sun, B. (2019). Monetary policy uncertainty. \emph{Journal of Monetary Economics}. Advance online publication. \url{http://doi.org/10.1016/j.jmoneco.2019.07.009}
 
 \leavevmode\hypertarget{ref-juraludvng:2015}{}%
 Jurado, K., Ludvigson, S. C., \& Ng, S. (2015). Measuring uncertainty. \emph{American Economic Review}, \emph{105}(3), 1177--1216. \url{http://doi.org/10.1257/aer.20131193}
-
-\leavevmode\hypertarget{ref-kilian:1998}{}%
-Kilian, L. (1998). Accounting for lag order uncertainty in autoregressions: The endogenous lag order bootstrap algorithm. \emph{Journal of Time Series Analysis}, \emph{19}(5), 531--548. \url{http://doi.org/10.1111/1467-9892.00107}
 
 \leavevmode\hypertarget{ref-kilian:2001}{}%
 Kilian, L. (2001). Impulse response analysis in vector autoregressions with unknown lag order. \emph{Journal of Forecasting}, \emph{20}(3), 161--179. \url{http://doi.org/10.1002/1099-131X(200104)20:3\%3C161::AID-FOR770\%3E3.0.CO;2-X}
@@ -589,26 +739,50 @@ Kilian, L. (2001). Impulse response analysis in vector autoregressions with unkn
 \leavevmode\hypertarget{ref-kililutk:2017}{}%
 Kilian, L., \& Lütkepohl, H. (2017). \emph{Structural vector autoregressive analysis}. Cambridge: Cambridge University Press.
 
+\leavevmode\hypertarget{ref-knight:2014}{}%
+Knight, F. H. (2014). \emph{Risk, uncertainty and profit}. Eastford: Martino Fine Books.
+
 \leavevmode\hypertarget{ref-leebpots:2005}{}%
 Leeb, H., \& Pötscher, B. M. (2005). Model selection and inference: Facts and fiction. \emph{Econometric Theory}, \emph{21}(1), 21--59. \url{http://doi.org/10.1017/S0266466605050036}
 
 \leavevmode\hypertarget{ref-leebpots:2006}{}%
 Leeb, H., \& Pötscher, B. M. (2006). Can one estimate the conditional distribution of post-model-selection estimators? \emph{The Annals of Statistics}, \emph{34}(5), 2554--2591. \url{http://doi.org/10.1214/009053606000000821}
 
+\leavevmode\hypertarget{ref-ludvmang:2015}{}%
+Ludvigson, S. C., Ma, S., \& Ng, S. (2015). \emph{Uncertainty and business cycles: Exogenous impulse or endogenous response?} (Working Paper No. 21803). National Bureau of Economic Research (NBER). Retrieved from \url{http://www.nber.org/papers/w21803}
+
+\leavevmode\hypertarget{ref-lutkepohl:2005}{}%
+Lütkepohl, H. (2005). \emph{New introduction to multiple time series analysis}. Berlin: Springer-Verlag.
+
+\leavevmode\hypertarget{ref-marimura:2003}{}%
+Mariano, R. S., \& Murasawa, Y. (2003). A new coincident index of business cycles based on monthly and quarterly series. \emph{Journal of Applied Econometrics}, \emph{18}(4), 427--443. \url{http://doi.org/10.1002/jae.695}
+
 \leavevmode\hypertarget{ref-paultjos:1985}{}%
 Paulsen, J., \& Tjostheim, D. (1985). On the estimation of residual variance and order in autoregressive time series. \emph{Journal of the Royal Statistical Society}, \emph{47}(2), 216--228. \url{http://doi.org/10.1111/j.2517-6161.1985.tb01348.x}
 
-\leavevmode\hypertarget{ref-R-vars}{}%
-Pfaff, B. (2018). \emph{Vars: VAR modelling}. Retrieved from \url{https://CRAN.R-project.org/package=vars}
+\leavevmode\hypertarget{ref-perron:2006}{}%
+Perron, P. (2006). Dealing with structural breaks. In H. Hassani, T. C. Mills, \& K. Patterson (Eds.), \emph{Palgrave handbook of econometrics} (Vol. 1: Econometric Theory, pp. 278--352). London: Palgrave MacMillan.
 
 \leavevmode\hypertarget{ref-quandt:1960}{}%
 Quandt, R. E. (1960). Tests of the hypothesis that a linear regression system obeys two separate regimes. \emph{Journal of the American Statistical Association}, \emph{55}(290), 324--330. \url{http://doi.org/10.1080/01621459.1960.10482067}
 
-\leavevmode\hypertarget{ref-R-psych}{}%
-Revelle, W. (2019). \emph{Psych: Procedures for psychological, psychometric, and personality research}. Retrieved from \url{https://CRAN.R-project.org/package=psych}
+\leavevmode\hypertarget{ref-romer:1990}{}%
+Romer, C. D. (1990). The great crash and the onset of the great depression. \emph{The Quarterly Journal of Economics}, \emph{105}(3), 597--624. \url{http://doi.org/10.2307/2937892}
+
+\leavevmode\hypertarget{ref-scotti:2016}{}%
+Scotti, C. (2016). Surprise and uncertainty indexes: Real-time aggregation of real-activity macro-surprises. \emph{Journal of Monetary Economics}, \emph{82}, 1--19. \url{http://doi.org/10.1016/j.jmoneco.2016.06.002}
 
 \leavevmode\hypertarget{ref-stocwats:1988}{}%
 Stock, J. H., \& Watson, M. W. (1988). Variable trends in economic time series. \emph{Journal of Economic Perspectives}, \emph{2}(3), 147--174. \url{http://doi.org/10.1257/jep.2.3.147}
+
+\leavevmode\hypertarget{ref-stocwats:1991}{}%
+Stock, J. H., \& Watson, M. W. (1991). A probability model of the coincident economic indicators. In G. Moore \& K. Lahiri (Eds.), \emph{The leading economic indicators: New approaches and forecasting records} (pp. 63--90). Cambridge: Cambridge University Press.
+
+\leavevmode\hypertarget{ref-stocwats:1993}{}%
+Stock, J. H., \& Watson, M. W. (1993). A procedure for predicting recessions with leading indicators: Econometric issues and recent experience. In J. Stock \& M. W. Watson (Eds.), \emph{Business cycles, indicators and forecasting} (pp. 95--156). Chicago: University of Chicago Press.
+
+\leavevmode\hypertarget{ref-stocwats:1999}{}%
+Stock, J. H., \& Watson, M. W. (1999). Forecasting inflation. \emph{Journal of Monetary Economics}, \emph{44}(2), 293--335. \url{http://doi.org/10.1016/S0304-3932(99)00027-6}
 
 \leavevmode\hypertarget{ref-stocwats:2001}{}%
 Stock, J. H., \& Watson, M. W. (2001). Vector autoregressions. \emph{Journal of Economic Perspectives}, \emph{15}(4), 101--115. \url{http://doi.org/10.1257/jep.15.4.101}
@@ -621,9 +795,6 @@ Stock, J. H., \& Watson, M. W. (2016). Dynamic factor models, factor-augmented v
 
 \leavevmode\hypertarget{ref-ventlutz:2005}{}%
 Ventzislav, I., \& Lutz, K. (2005). A practitioner's guide to lag order selection for VAR impulse response analysis. \emph{Studies in Nonlinear Dynamics \& Econometrics}, \emph{9}(1), 1--36. \url{http://doi.org/10.2202/1558-3708.1219}
-
-\leavevmode\hypertarget{ref-R-strucchange}{}%
-Zeileis, A., Leisch, F., Hornik, K., \& Kleiber, C. (2019). \emph{Strucchange: Testing, monitoring, and dating structural changes}. Retrieved from \url{https://CRAN.R-project.org/package=strucchange}
 
 
 % Index?

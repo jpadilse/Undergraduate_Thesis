@@ -1,21 +1,23 @@
-.Rproj.user
+# History files
 .Rhistory
+
+# Session data files
 .RData
 .Ruserdata
 
-# Log files
-Thesis.log
+# RStudio files
+.Rproj.user
+
+# knitr and R markdown default cache directory
+_bookdown_files/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
 
 # Binary files
-FinancialUncertaintyToCirculate.xlsx
-gpr_web_latest.xlsx 
-HRS_MPU_monthly.xlsx                
-MacroUncertaintyToCirculate.xlsx
-RealUncertaintyToCirculate.xlsx     
-Scotti_data28june2019.xls      
-US_MPU_monthly.xlsx            
-US_Policy_Uncertainty_Data.xlsx
-
-# Directories
-_bookdown_files/
+*.xls  
+*.xlsx
+    
+# Ignore private documents
 Doc/

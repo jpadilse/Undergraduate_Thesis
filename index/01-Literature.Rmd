@@ -16,7 +16,7 @@ First of all, the uncertainty has been put inside a framework of irreversible in
 
 @bekahoerduca:2013 study the relationship between uncertainty and policy interventions. The authors concludes that uncertainty has an important role in the transmission of monetary policy mechanisms. This marks the question if facing uncertainty requires considerable policy action or not.
 
-## History of indices construction {#history-of-indices-construction}
+## History of Indices Construction {#history-of-indices-construction}
 
 The DFM allows to resolve a classic problem in empirical macroeconomics, that is, the construction of an index of indicators of economic activity. In the DFM framework, the latent factor summarizes the comovements of the observed variables. Hence, the estimate of a latent factor from a single DFM is an index of the movements of the relevant series.
 

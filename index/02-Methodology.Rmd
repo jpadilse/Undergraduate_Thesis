@@ -2,13 +2,13 @@
 
 For the construction of the non-asset-market uncertainty index is necessary capture the common comovements in the series for which is used a dynamic factor model that is described in [Dynamic factor model]. 
 
-## Dynamic factor model {#dynamic-factor-model}
+## Dynamic Factor Model {#dynamic-factor-model}
 
 Following @stocwats:2016, the DFM represents the evolution of a vector of $N$ observed time series, $X_{t}$, in terms of a reduced number of unobserved common factors which evolve over time, plus uncorrelated disturbances which represent measurement error and/or idiosyncratic dynamics of the individual series. Throughout this chapter, we use lag operator, so that $a(L) = \sum_{i = 0}^{\infty} a_{i}L^{i}$, where $L$ is the lag operator, and $a(L)X_{t} = \sum_{i = 0}^{\infty} a_{i}X_{t - i}$.
 
 One form of write the model is its dynamic form which take into account the serial dependence in the data, i.e., represents the dependence of $X_{t}$ on lags of the factors explicitly.
 
-### Dynamic form of the DFM
+### Dynamic Form of the DFM
 
 The DFM expresses a $N \times 1$ vector $X_{t}$ of observed time series variables as depending on a reduced number $q$ of unobserved or latent factors $f_{t}$ and a mean-zero idiosyncratic component $e_{t}$. The DFM is,
 
@@ -22,7 +22,7 @@ where $X_{t} \stackrel{iid}{\sim} (0, \sum_{x})$ and the lag polynomial matrices
 
 If the idiosyncratic disturbance $e_{t}$ in \@ref(eq:common) is serially correlated the models \@ref(eq:common) and \@ref(eq:evolve) are incompletely specified. @chamroth:1983 *approximate factor model* allows for such correlation.
 
-### Static (stacked) form of the DFM
+### Static (Stacked) Form of the DFM
 
 The *static*, or *stacked*, form of the DFM rewrites the dynamic form \@ref(eq:common) and \@ref(eq:evolve) to depend on $r$ *static factors* $F_{t}$ instead of the $q$ dynamic factors $f_{t}$, where $r \geq q$. This rewriting makes the model amenable to principal component analysis.
 
@@ -53,7 +53,7 @@ where
   \end{bmatrix}_{r \times q}
 \end{equation*}
 
-### Normalization of the factors
+### Normalization of the Factors
 
 Because the factors are unobserved, they are identified only up to arbitrary normalizations. Exact identification of the factor model can be ensured with the principal components normalization ---@baing:2013 refer to this normalization as the PC1 normalization--- where the columns of $\Lambda$ are orthonormal:
 
@@ -100,7 +100,7 @@ One way to handle the computational problem of maximum likelihood estimation of 
 
 ## VAR {#var}
 
-### Lag order {#lag-order}
+### Lag Order {#lag-order}
 
 It is necessary to choose the lag-order $p$ of the VAR models calculated in the next sections. First, defining the maximum lag order that is considered reasonable as $p_{max}$ and the minimum lag order $p_{min}$ set to zero one criterion is whether the lag-order estimator is consistent for the true lag-order $p_{0}$ where the DGP is VAR($p_{0}$), provided $p_{min} \leq p_{0} \leq p_{max}$. The Schwarz Information Criterion (SIC) and the Hannan-Quin Criterion (HQC) are consistent for $p_{0}$ in contrast to the Akaike Information Criterion (AIC) [@lutkepohl:2005]. 
 

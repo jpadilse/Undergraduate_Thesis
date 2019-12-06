@@ -86,6 +86,13 @@ Residuals_break <- DFM_base %>%
 DFM_base %<>% mutate(NAM = Residuals_break)
 ```
 
+```{r csv}
+write_csv(
+  DFM_base %>% select(Date, NAM), 
+  here("index", "Data", "Output", "Non-Asset-Market.csv")
+)
+```
+
 I estimate the non-asset-market uncertainty index following the quasi-maximum likelihood estimator of @dozgianreic:2012 as described in [Dynamic factor model], although alternative estimators are tested in [Robustness]. Moreover, I use one dynamic factor, one static factor and one lag in the specification of the model because I am looking for one single summary index that captures the common comovements of uncertainty, hence, one dynamic and static factor seems appropriate. This binds the lag order to one as the lag order can not be greater that the ratio between the number of static factors and the number of dynamic factors---$p \le \frac{r}{q}$ [@kililutk:2017].
 
 Although the goal is construct one economic index from the underlying series, it is worthy show all factors and its behavior. Each factor is associated with an eigenvalue of the correlation matrix of the the raw data. The first factor is associated with the largest eigenvalue, the second factor with the second-largest eigenvalue, and so on. A *scree plot* displays the marginal contribution---the average additional explanatory value of the kth factor---of the kth principal component to the average $R^{2}$ of the $N$ regressions of $X_{t}$ against the first k principal components. Essentially, the scree plot shows the ordered eigenvalues of $\hat{\sum}_{X}$ normalized by the sum of eigenvalues. The figure \@ref(fig:scree-plot) displays the scree plot where only the first factor is significant. Likewise, the plot shows a bend and only the first factor is above this sharp break (which suggest one factor following the scree test of @cattel:1966). In summary, a single component is appropriate for summarizing this dataset.
@@ -100,9 +107,9 @@ scree_plot <- fa.parallel(
 )
 ```
 
-(ref:scree-plot) **Scree Plot for Uncertainty Dataset, 1985--2017**: The Figure shows a scree plot with the variance explained by each factor. The percentage explained taper off after the first factor ---which is fill in black.
+(ref:scree-plot) **Scree Plot for Uncertainty Dataset**: The Figure shows a scree plot with the variance explained by each factor. The percentage explained taper off after the first factor---which is fill in black.
 
-```{r scree-plot, fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot for Uncertainty Dataset, 1985--2017"}
+```{r scree-plot, fig.cap = "(ref:scree-plot)", fig.scap = "Scree Plot for Uncertainty Dataset"}
 tibble(
   Component_Number = factor(1:length(uncertainty_indices[-1])), 
   Real = scree_plot[["pc.values"]] / length(uncertainty_indices[-1]), 
@@ -201,7 +208,7 @@ kable(
 
 <!-- The third estimator used is the Quasi-Maximum Likelihood by @dozgianreic:2012. Similar to two-step estimator, however Kalman filtering procedure is iterated until Expectation-Maximization (EM) algorithm converges. -->
 
-## Correlation with Other Uncertainty indices {#correlation-with-uncertainty-indices}
+## Correlation with Other Uncertainty Indices {#correlation-with-uncertainty-indices}
 
 ```{r corr_indices, message = FALSE, warning = FALSE}
 corr_indices <- cor(
@@ -228,9 +235,9 @@ corr_indices <- cor(
 )
 ```
 
-(ref:corr-plot) **Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty indices**: The figure shows the correlation matrix between the the non-asset-market uncertainty index and other indices. The variables are defined as: EPU (3C): economic policy uncertainty index from three underlying components, EPU (News): economic policy uncertainty index based on newspaper archives from Access World New's NewsBank service, MPU (AWN): monetary policy uncertainty from draws on hundreds of U.S. newspapers covered by Access World News, MPU (10): monetary policy uncertainty from draws on a balanced panel of 10 major national and regional U.S. newspapers, MPU: monetary policy uncertainty from draws on the Wall Street Journal, New York Times and Washington post, MU (h): macroeconomic uncertainty at h horizon, RU (h): real uncertainty at h horizon, FU (h): financial uncertainty at h horizon and Non-Asset-Market: the uncertainty index propose in this document.
+(ref:corr-plot) **Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty Indices**: The figure shows the correlation matrix between the the non-asset-market uncertainty index and other indices. The variables are defined as: EPU (3C): economic policy uncertainty index from three underlying components, EPU (News): economic policy uncertainty index based on newspaper archives from Access World New's NewsBank service, MPU (AWN): monetary policy uncertainty from draws on hundreds of U.S. newspapers covered by Access World News, MPU (10): monetary policy uncertainty from draws on a balanced panel of 10 major national and regional U.S. newspapers, MPU: monetary policy uncertainty from draws on the Wall Street Journal, New York Times and Washington post, MU (h): macroeconomic uncertainty at h horizon, RU (h): real uncertainty at h horizon, FU (h): financial uncertainty at h horizon and Non-Asset-Market: the uncertainty index propose in this document.
 
-```{r corr-plot, fig.asp = 0.85, fig.cap = "(ref:corr-plot)", fig.scap = "Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty indices"}
+```{r corr-plot, fig.asp = 0.85, fig.cap = "(ref:corr-plot)", fig.scap = "Correlogram Between the Non-Asset-Market Uncertainty Index and Other Uncertainty Indices"}
 corrplot(
   corr_indices,
   method = "color", 
@@ -351,9 +358,9 @@ matrix_irf <- list(matrix_response, matrix_lower, matrix_upper) %>%
   )
 ```
 
-(ref:irf-baseline-plot) **Economic Dynamics Under Uncertainty in the Eleven Variables VAR**: The figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axes are in percentages but the federal funds rate is in basic points and employment is in number of employees. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:irf-baseline-plot) **Economic Dynamics Under Uncertainty in the 11-Variable VAR**: The figure shows the reaction of the variables to an unexpected increment of non-asset-market uncertainty (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axes are in percentages but the federal funds rate is in basic points and employment is in number of employees. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r irf-baseline-plot, fig.asp = 1.4, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics Under Uncertainty in the Eleven Variables VAR"}
+```{r irf-baseline-plot, fig.asp = 1.4, fig.cap = "(ref:irf-baseline-plot)", fig.scap = "Economic Dynamics Under Uncertainty in the 11-Variable VAR"}
 matrix_irf %>%
   filter(Variable %in% c(
     "Production",
@@ -446,9 +453,9 @@ fevd_tibble %<>%
   arrange(N)
 ```
 
-(ref:fevd-plot) **Forecast Error Variance Decomposition in the Eleven Variables VAR**: The figure shows the percentage of variance of the $h$-step-ahead forecast error due to a shocks of each variable, for $h = 1, \ldots, 60$.
+(ref:fevd-plot) **Forecast Error Variance Decomposition in the 11-Variable VAR**: The figure shows the percentage of variance of the $h$-step-ahead forecast error due to a shocks of each variable, for $h = 1, \ldots, 60$.
 
-```{r fevd-plot, fig.asp = 1.7, fig.cap = "(ref:fevd-plot)", fig.scap = "Forecast Error Variance Decomposition in the eleven variables VAR"}
+```{r fevd-plot, fig.asp = 1.7, fig.cap = "(ref:fevd-plot)", fig.scap = "Forecast Error Variance Decomposition in the 11-Variable VAR"}
 fevd_tibble %>%
   ggplot(aes(N, Percentage)) +
     geom_area(aes(fill = Variable), colour = "black", size = 0.20) +
@@ -563,9 +570,9 @@ fevd_NAM %<>%
   arrange(N)
 ```
 
-(ref:R-plot) **Dynamics of Policy Intervention and Uncertainty in the eleven variable VAR**: The figure shows the reaction of uncertainty to an unexpected loosening of monetary policy (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in units. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:R-plot) **Dynamics of Policy Intervention and Uncertainty in the 11-Variable VAR**: The figure shows the reaction of uncertainty to an unexpected loosening of monetary policy (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in units. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r R-plot, fig.cap = "(ref:R-plot)", fig.scap = "Dynamics of Policy Intervention and Uncertainty in the eleven variable VAR"}
+```{r R-plot, fig.cap = "(ref:R-plot)", fig.scap = "Dynamics of Policy Intervention and Uncertainty in the 11-Variable VAR"}
 irf_R_matrix %>%
   ggplot(aes(Months, Response)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
@@ -583,9 +590,9 @@ irf_R_matrix %>%
     ) 
 ```
 
-(ref:R-fevd-plot) **Forecast Error Variance Decomposition for Uncertainty in the Eleven Variable VAR**: The figure shows the fractions of the forecast error variance due monetary policy innovations. The estimation period runs from January 1985 to July 2017. 
+(ref:R-fevd-plot) **Forecast Error Variance Decomposition for Uncertainty in the 11-Variable VAR**: The figure shows the fractions of the forecast error variance due monetary policy innovations. The estimation period runs from January 1985 to July 2017. 
 
-```{r R-fevd-plot, fig.cap = "(ref:R-fevd-plot)", fig.scap = "Forecast Error Variance Descomposition for Uncertainty in the Eleven Variable VAR"}
+```{r R-fevd-plot, fig.cap = "(ref:R-fevd-plot)", fig.scap = "Forecast Error Variance Decomposition for Uncertainty in the 11-Variable VAR"}
 
 fevd_NAM %>%
   ggplot(aes(N, Percentage)) +
@@ -837,9 +844,9 @@ irf_medium_production_matrix <- tibble(
   )
 ```
 
-(ref:production-medium) **Decline of Production Under Uncertainty in the Eight Variable VAR**: The figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:production-medium) **Decline of Production Under Uncertainty in the 8-Variable VAR**: The figure shows the reaction of industrial production in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of Production Under Uncertainty in the Eight Variable VAR"}
+```{r production-medium, fig.cap = "(ref:production-medium)", fig.scap = "Decline of Production Under Uncertainty in the 8-Variable VAR"}
 irf_medium_production_matrix %>%
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
@@ -896,9 +903,9 @@ irf_medium_employment_matrix <- tibble(
   )
 ```
 
-(ref:employment-medium) **Decline of Employment Under Uncertainty in the Eight Variable VAR**: The figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
+(ref:employment-medium) **Decline of Employment Under Uncertainty in the 8-Variable VAR**: The figure shows the reaction of employment in manufacturing to an unexpected increment of non-asset-market uncertainty and to an unexpected increment of the federal funds rate (model with 12 fixed lags following Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006], as explained in [Lag order]), based on 1000 replications. The axis is in percentage. The estimation period runs from January 1985 to July 2017. Confidence bands (86 \%) are calculated using bootstrapping techniques as explained in @efrotibs:1993.
 
-```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of Employment Under Uncertainty in the Eight Variable VAR"}
+```{r employment-medium, fig.cap = "(ref:employment-medium)", fig.scap = "Decline of Employment Under Uncertainty in the 8-Variable VAR"}
 irf_medium_employment_matrix %>%
   ggplot(aes(Months, Res)) +
     geom_hline(aes(yintercept = 0), size = 0.125) +
