@@ -8,5 +8,5 @@ rmd_files:
     - "04-Results.Rmd"
     - "05-Conclusion.Rmd"
     - "99-References.Rmd"
-download: [["thesis.pdf", "PDF"], ["thesis.docx", "Word"]]
+download: [["thesis.pdf", "PDF"]]
 delete_merged_file: true

@@ -96,7 +96,7 @@ Given the parameters, the Kalman filter can be used to compute the likelihood an
 
 #### Hybrid methods
 
-One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter [@dozgianreic:2011]. In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate $F_{t}$ by the Kalman filter.
+One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter [@dozetal:2011]. In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate $F_{t}$ by the Kalman filter.
 
 ## VAR {#var}
 
