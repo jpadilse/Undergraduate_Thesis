@@ -1,14 +1,6 @@
 # Literature {#literature}
 
-In this chapter I review the role of risk and uncertainty in [Risk and Uncertainty]. Then, I documented the history of index construction in macroeconomics in [History of indices construction]. Finally, I show the main uncertainty indices in the field---which use some of the methodologies exposed in the previous subsection---in [Empirical Measures of Uncertainty].
-
-<!-- ## lag order raw -->
-
-<!-- - @kilian:1998 -->
-
-<!-- ## fixed lag -->
-
-
+In this chapter I review the role of risk and uncertainty in [Risk and Uncertainty]. Then, I documented the history of index construction in macroeconomics in [History of Indices Construction]. Finally, I show the main uncertainty indices in the field---which use some of the methodologies exposed in the previous subsection---in [Empirical Measures of Uncertainty].
 
 ## Risk and Uncertainty {#risk-and-uncertainty}
 
@@ -20,7 +12,7 @@ First of all, the uncertainty has been put inside a framework of irreversible in
 
 The DFM allows to resolve a classic problem in empirical macroeconomics, that is, the construction of an index of indicators of economic activity. In the DFM framework, the latent factor summarizes the comovements of the observed variables. Hence, the estimate of a latent factor from a single DFM is an index of the movements of the relevant series.
 
-The first application of DFMs for monitoring the economy was the @stocwats:1991 experimental coincident index (XCI), which was active between May 1989 to December 2003. This index was the result from the Kalman filter estimate of one single factor among four monthly coincident indices: total nonfarm employment, the index of industrial production, real manufacturing and trade sales, and real personal income less transfers. @stocwats:1993 shown that in retrospective analysis,the XCI was successful in contemporaneous monitoring and in real-time detection of the recession of 1990 although only less that six months before the recession.
+The first application of DFMs for monitoring the economy was the @stocwats:1991 experimental coincident index (XCI), which was active between May 1989 to December 2003. This index was the result from the Kalman filter estimate of one single factor among four monthly coincident indices: total non-farm employment, the index of industrial production, real manufacturing and trade sales, and real personal income less transfers. @stocwats:1993 shown that in retrospective analysis, the XCI was successful in contemporaneous monitoring and in real-time detection of the recession of 1990 although only less that six months before the recession.
 
 After the start of using DFMs for index construction were estimated subsequent indices through state-space models. First, monthly real activity indices for US states [@cronclay:2005]---that are active from 2005. Second, the inclusion of mixed-frequency series to the XCI in @marimura:2003. Third, @aruoetal:2009 developed a mixed-frequency index for economic conditions so-called ADS. In contrast, recent studies has focused in large dimensional systems. @stocwats:1999 constructed the base for the Chicago Fed National Activity Index (CFNAI), that is the principal components estimate of the common factor in 85 real activity variables. Finally, an European Union real economy activity index---named EuroCOIN---based on 145 Euro-area real activity variables was developed by @altietal:2010.
 

@@ -4,7 +4,7 @@ For the construction of the non-asset-market uncertainty index is necessary capt
 
 ## Dynamic Factor Model {#dynamic-factor-model}
 
-Following @stocwats:2016, the DFM represents the evolution of a vector of $N$ observed time series, $X_{t}$, in terms of a reduced number of unobserved common factors which evolve over time, plus uncorrelated disturbances which represent measurement error and/or idiosyncratic dynamics of the individual series. Throughout this chapter, we use lag operator, so that $a(L) = \sum_{i = 0}^{\infty} a_{i}L^{i}$, where $L$ is the lag operator, and $a(L)X_{t} = \sum_{i = 0}^{\infty} a_{i}X_{t - i}$.
+Following @stocwats:2016, the DFM represents the evolution of a vector of $N$ observed time series, $X_{t}$, in terms of a reduced number of unobserved common factors which evolve over time, plus uncorrelated disturbances which represent measurement error and/or idiosyncratic dynamics of the individual series^[I follow the notation proposed by @abadmagn:2002.]. Throughout this chapter, we use lag operator, so that $a(L) = \sum_{i = 0}^{\infty} a_{i}L^{i}$, where $L$ is the lag operator, and $a(L)X_{t} = \sum_{i = 0}^{\infty} a_{i}X_{t - i}$.
 
 One form of write the model is its dynamic form which take into account the serial dependence in the data, i.e., represents the dependence of $X_{t}$ on lags of the factors explicitly.
 
@@ -98,7 +98,11 @@ Given the parameters, the Kalman filter can be used to compute the likelihood an
 
 One way to handle the computational problem of maximum likelihood estimation of the state-space parameters is to adopt a two-step hybrid approach that combines the speed of principal components and the efficiency of the Kalman filter [@dozetal:2011]. In the first step, initial estimates of factors are obtained using principal components, from which the factor loadings are estimated and a model is fit to the idiosyncratic components. In the second step, the resulting parameters are used to construct a state-space model which then can be used to estimate $F_{t}$ by the Kalman filter.
 
-## VAR {#var}
+## Vector Autoregressions {#vector-autoregressions}
+
+### The VAR model {#the-var-model}
+
+A vector autoregression (VAR) with $k$ time series variables consists of $k$ equations---one for each of the variables---where the regressors in all equations are lagged values of all variables. When the number of lags in each of the equations is the same and is equal to $p$, the system of equations is called a VAR($p$). The coefficients of the VAR are estimated by estimating each equation by OLS.
 
 ### Lag Order {#lag-order}
 
@@ -111,3 +115,5 @@ Furthermore, the MSE of the impulse-response estimates is lower for models estim
 <!--  as it is the most reliable estimator of $p_{0}$ compared with other information criteria [@gonzpita:2002]. -->
 
 Although the AIC seems to be the best option for select the lag order, Leeb \& Pötscher [-@leebpots:2005;-@leebpots:2006] questioned the inference using data-dependent lag-order selection procedure for VAR models. One alternative approach that avoids this problems is use models with fixed lags instead. As a result, fixed lag orders for all VAR models are used. Also, since the data is monthly the appropriate lag order is 12 months.
+
+@kilian:1998

@@ -34,9 +34,10 @@ header-includes:
    - \usepackage{makecell}
    - \usepackage{xcolor}
    - \usepackage{caption}
+   - \usepackage{bm}
    - \captionsetup[figure]{font=small}
    - \captionsetup[table]{font=small}
-   - \DeclareMathOperator{\diag}{diag}
+   - \input{Notation.sty}
 ---
 
 ```{r setup, include = FALSE}
