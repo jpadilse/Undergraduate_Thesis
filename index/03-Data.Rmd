@@ -11,7 +11,7 @@ For the construction of the non-asset-market uncertainty index I use uncertainty
 - The indices of geopolitical risk developed by @caldiaco:2018. Specifically, the benchmark geopolitical risk index, the geopolitical acts index and the geopolitical threats index. These indices are available from January 1985 through November 2019 in the website <https://www.policyuncertainty.com>.
 - The macroeconomic, financial and real uncertainty indices developed by @juraetal:2015 and @ludvetal:2015 at all horizons. These indices are available from July 1960 through June 2019 in one of the authors website <https://www.sydneyludvigson.com/data-and-appendixes>.
 
-In [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks] I estimate several VAR models. The data for these exercises were taken from the Federal Reserve Bank of Saint Louis (FRED: <https://fred.stlouisfed.org/>), Yahoo Finance (<https://finance.yahoo.com/>) and Quandl (<https://www.quandl.com/>) webpages through the API of each of them. Specifically, for the eleven-variable VAR I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance. 
+In [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks] I estimate several VAR models. The data for these exercises were taken from the Federal Reserve Bank of Saint Louis (FRED: <https://fred.stlouisfed.org/>), Yahoo Finance (<https://finance.yahoo.com/>) and Quandl (<https://www.quandl.com/>) webpages through the API of each of them. Specifically, for the 11-variable VAR I use the industrial production index in 2012 prices; the total number of employees in the non-farm sector in thousand of persons; real personal consumption expenditures in 2012 prices; the personal consumption expenditures price index in 2012 prices; the average hourly earnings of production and non-supervisory employees for all-sectors in dollars per hour; average weekly hours of production and non-supervisory employees for all-sectors in hours; effective federal funds rate in percent and M2 money stock in billions of dollars from FRED. Likewise, I use the new order index from Quandl and the Standard and Poor's 500 index from Yahoo Finance. 
 
 In addition, I estimate several models for the manufacturing sector in [Robustness]. In detail, I use the industrial production index in manufacturing sector known as NAICS in 2012 prices, the total number of employees in manufacturing sector in thousand of persons, average weekly hours of production and non-supervisory employees in manufacturing sector in hours, consumer price index (all urban consumers) in 1982--1984 prices, average hourly earnings of production and non-supervisory employees in manufacturing sector from FRED, and the federal funds rate and Standard and Poor's 500 index as defined in the previous paragraph. 
 
@@ -25,22 +25,26 @@ All series were taken seasonally adjusted except the federal funds rate and the 
 
 ### Basic {#basic}
 
-All series of which units are measured in prices need to be given the $100 \times \log()$ treatment. On the other hand, the M2 money stock enter as continuously compounded annual rate of change---$1200 \times \ln(\frac{M_{t}}{M_{t - 1}})$, where $M_{t}$ is the M2 money stock. Likewise, the inflation series is computed as $1200 \times \ln(\frac{P_{t}}{P_{t - 1}})$, where $P_{t}$ is the price index.
+All series of which units are measured in prices need to be given the $100 \times \log()$ treatment. On the other hand, the M2 money stock enter as continuously compounded annual rate of change---$1200 \times \log (\frac{M_{t}}{M_{t - 1}})$, where $M_{t}$ is the M2 money stock. Likewise, the inflation series is computed as $1200 \times \log (\frac{P_{t}}{P_{t - 1}})$, where $P_{t}$ is the price index.
 
 ### Detrend {#detrend}
 
-Since stochastic trends in economic time series variables pose problems for regression analysis (see @stocwats:1988 for additional discussion) it is necessary detrend the variables. For this was used the alternative methodology proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggest to be seen a period of two years in the future which with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
+Since stochastic trends in economic time series variables pose problems for regression analysis---see @stocwats:1988 for additional discussion---it is necessary detrend the variables. For this was used the alternative methodology proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggest to be seen a period of two years in the future which with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
 
-\begin{equation}
-  y_{t+24} = \beta_{0} + \beta_{1}y_{t} + \beta_{2}y_{t - 1} + \cdots + \beta_{8}y_{t - 7} + v_{t + 24}
+\begin{eqnarray}
+  y_{t+24} & = & \beta_{1} + \beta_{2}y_{t} + \beta_{3}y_{t - 1} + \cdots + \beta_{13}y_{t - 11} + \epsi_{t + 24}
+  \\
+  \hat{\epsi}_{t + 24} & = & y_{t + 24} - \hat{\beta}_{1} + \hat{\beta}_{2} y_{t} + \hat{\beta}_{3} y_{t - 1} + \cdots + \hat{\beta}_{13} y_{t - 11}
   (\#eq:hamilton-basic)
-\end{equation}
+\end{eqnarray}
 
 Which can be rewritten as:
 
-\begin{equation}
-  y_{t} = \beta_{0} + \beta_{1}y_{t - 24} + \beta_{2}y_{t - 25} + \cdots + \beta_{8}y_{t - 32} + v_{t}
+\begin{eqnarray}
+  y_{t} & = & \beta_{1} + \beta_{2} y_{t - 24} + \beta_{3} y_{t - 25} + \cdots + \beta_{13} y_{t - 35} + \epsi_{t}
+  \\
+  \hat{\epsi}_{t} & = & y_{t} - \hat{\beta}_{1} + \hat{\beta}_{2} y_{t - 24} + \hat{\beta}_{3} y_{t - 25} + \cdots + \hat{\beta}_{13} y_{t - 35}
   (\#eq:hamilton-final)
-\end{equation}
+\end{eqnarray}
 
 Therefore, all macroeconomic and financial variables are detrended with the Hamilton method for the following sections.
