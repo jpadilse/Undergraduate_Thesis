@@ -153,7 +153,7 @@ VAR_data <- USA_data %>%
 ```{r IP, message = FALSE}
 IP <- tq_get("INDPRO", get = "economic.data", from = "1972-01-01") %>% 
   transmute(
-    Date = seq(ymd(19720201), ymd(20191101), by = "1 month") - 1,
+    Date = seq(ymd(19720201), ymd(20191201), by = "1 month") - 1,
     growth_production_all = 12 * 100 * log(price / lag(price))
   ) %>% 
   drop_na() %>% 
