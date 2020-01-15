@@ -263,10 +263,10 @@ To interpret the Figure \@ref(fig:corr-plot), the color in each cell represents 
 I explore the dynamic relationship between my uncertainty index and some variables from the United States' economy. For that purpose, I use a benchmark model well documented: the model proposed by @chrietal:2005---and used as a base in @chuletal:2017. First, the characterization of monetary policy is defined by:
 
 \begin{equation}
-    r_{t} = f(\Omega_{t}) + \epsi_{t} \quad (t = 1, 2, \dots, T) (\#eq:R)
+    r_{t} = \vartheta (\Omega_{t}) + \epsi_{t} \quad (t = 1, 2, \dots, T) (\#eq:R)
 \end{equation}
 
-Where, $r_{t}$ is the effective federal funds rate (understood as the monetary policy instrument), $f$ is a linear function, $\Omega_{t}$ is an information set and $\epsi_{t}$ is the monetary policy shock, where it is assumed that $\epsi_{t}$ is orthogonal to $\Omega_{t}$.
+Where, $r_{t}$ is the effective federal funds rate (understood as the monetary policy instrument), $\vartheta$ is a linear function, $\Omega_{t}$ is an information set and $\epsi_{t}$ is the monetary policy shock, where it is assumed that $\epsi_{t}$ is orthogonal to $\Omega_{t}$.
 
 Considering the $n$-dimensional vector $\vy_{t}$ as the set of variables to which the dynamic effect of an uncertainty shock will be analyzed, there is:
 
