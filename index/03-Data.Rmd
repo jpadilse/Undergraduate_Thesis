@@ -1,6 +1,6 @@
 # Data {#data}
 
-In this section I show the sources used for retrieve the data necessary for the analysis carried out in [Sources]. Then, I check the lack of seasonality for each series in [Seasonality]. Lastly, I describe the transformations done to each series in [Transformations].
+In this section I show the sources used to retrieve the data necessary for the analysis carried out in [Sources]. Then, I check the lack of seasonality for each series in [Seasonality]. Lastly, I describe the transformations made to each series in [Transformations].
 
 ## Sources {#sources}
 
@@ -19,7 +19,7 @@ The sample spans from January 1985 to July 2017, which is the longest period pos
 
 ## Seasonality {#seasonality}
 
-All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but them doesn't exhibit apparent seasonal components. Nevertheless, it is good practice to verify that the series are indeed free of seasonality [@kililutk:2017]. Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VAR model in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks].
+All series were taken seasonally adjusted except the federal funds rate and the Standard and Poor's 500 index but they don't exhibit apparent seasonal components. Nevertheless, it is a good practice to verify that the series are indeed free of seasonality [@kililutk:2017]. Therefore, I regress each series on seasonal dummies and conduct a Wald test for the inclusion of regressors. There aren't seasonality in the series. The absence of seasonal components allow to avoid the overparameterization of the VAR model in [Estimates on the Impact of Non-Asset-Market Uncertainty Shocks].
 
 ## Transformations {#transformations}
 
@@ -29,7 +29,7 @@ All series of which units are measured in prices need to be given the $100 \time
 
 ### Detrend {#detrend}
 
-Since stochastic trends in economic time series variables pose problems for regression analysis---see @stocwats:1988 for additional discussion---it is necessary detrend the variables. For this was used the alternative methodology proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggest to be seen a period of two years in the future which with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
+Since stochastic trends in economic time series variables pose problems for regression analysis---see @stocwats:1988 for additional discussion---it is necessary detrend the variables. For this it was used the alternative methodology proposed by Hamilton [-@hamilton:2018] which avoid the shortcomings of Hodrick-Prescott (HP) filter, i.e., spurious dynamic relations that have no basis in the underlying data-generating process. The method consist of a regression of the variable at date $t + h$ on the twelve most recent values as of date $t$^[The original paper talks about quarterly data but because I use monthly data is necessary adjust the seasonally parameter to allow one year (as do the original paper with four quarters).]. The $h$ parameter is suggested to be seen as a period of two years in the future---with monthly data are 24 months. In summary, the model fitted to each series is an autoregressive---AR(12)---model, dependent on $t + 24$ look-ahead. This is expressed more concretely by:
 
 \begin{eqnarray}
   y_{t+24} & = & \beta_{1} + \beta_{2}y_{t} + \beta_{3}y_{t - 1} + \cdots + \beta_{13}y_{t - 11} + \epsi_{t + 24}
