@@ -4,7 +4,7 @@ In this section I show the sources used to retrieve the data necessary for the a
 
 ## Sources {#sources}
 
-For the construction of the non-asset-market uncertainty index I use uncertainty indices from distinct sources for the U.S. economy. Specifically, the indices are (following the order proposed in @dattetal:2017, as discussed in [Empirical Measures of Uncertainty]):
+For the construction of the non-asset-market uncertainty index I use uncertainty indices from distinct sources for the U.S. economy. Specifically, the indices are (following the order proposed in @dattetal:2017, as discussed in [Empirical Measurements of Uncertainty]):
 
 - The two variants of economic policy uncertainty index and the two variants of monetary policy uncertainty index from @bakeetal:2016. These indices are available from January 1985 through September 2019 in the authors website <https://www.policyuncertainty.com>.
 - The monetary policy uncertainty Index developed by @hustetal:2019. This index is available from January 1985 through July 2017 in the website <https://www.policyuncertainty.com>.
